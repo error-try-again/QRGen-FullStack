@@ -14,7 +14,7 @@
       ],
       "restart": "on-failure",
       "domains": [
-        "qr-gen.net"
+        "localhost"
       ],
       "locations": [
         "/qr/"
@@ -33,7 +33,6 @@
       "volumes": {
         "./nginx": "/etc/nginx",
         "./nginx/conf.d": "/etc/nginx/conf.d",
-        "./nginx/ssl": "/etc/nginx/ssl",
         "./nginx/logs": "/usr/share/nginx/logs",
         "./certs": "/etc/letsencrypt/live/",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
@@ -46,8 +45,32 @@
       ],
       "restart": "on-failure",
       "domains": [
-        "qr-gen.net"
+        "localhost"
       ]
+    },
+    "certbot": {
+      "name": "certbot",
+      "context": ".",
+      "dockerfile": "./certbot/Dockerfile",
+      "container_name": "certbot",
+      "entrypoint": "/bin/sh",
+      "command": "certonly --webroot --webroot-path=/etc/letsencrypt/live/localhost --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --staging --dry-run --overwrite-cert-dirs --domains localhost.me",
+      "ports": [
+        "80:80"
+      ],
+      "volumes": {
+        "./certbot/logs": "/var/log/letsencrypt",
+        "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
+        "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
+        "./nginx/html": "/etc/nginx/html"
+      },
+      "networks": [
+        "qrgen"
+      ],
+      "depends_on": [
+        "nginx"
+      ],
+      "restart": "on-failure"
     }
   },
   "networks": {
@@ -64,13 +87,39 @@
     "production": {
       "services": [
         "nginx",
-        "express_service"
+        "express_service",
+        "certbot"
       ],
       "overrides": {
         "express_service": {
           "ports": [
             "3001:3001"
-          ]
+          ],
+          "domains": [
+            "localhost"
+          ],
+          "volumes": {
+            "./certs/live/localhost": "/etc/ssl/certs/"
+          }
+        },
+        "nginx": {
+          "ports": [
+            "443:443"
+          ],
+          "domains": [
+            "localhost"
+          ],
+          "depends_on": [
+            "express_service"
+          ],
+          "volumes": {
+            "./nginx": "/etc/nginx",
+            "./nginx/conf.d": "/etc/nginx/conf.d",
+            "./nginx/ssl": "/etc/nginx/ssl",
+            "./nginx/logs": "/usr/share/nginx/logs",
+            "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
+            "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
+          }
         }
       },
       "networks": {
@@ -103,8 +152,8 @@
         "origin_port": "8080",
         "origin_url": "https://void.qr-gen.net",
         "productions_certs_flag": "--staging",
-        "regenerate_diffie_hellman_parameters": true,
-        "regenerate_ssl_certificates": true,
+        "regenerate_diffie_hellman_parameters": false,
+        "regenerate_ssl_certificates": false,
         "release_branch": "full-release",
         "rsa_key_size_flag": "--rsa-key-size 4096",
         "terms_of_service_flag": "--agree-tos",

@@ -33,8 +33,8 @@ export_environment_flags() {
 
     print_message "Exporting flag: ${key}=${value}"
 
-    # Export the key and value as environment variables
-    export "${key}"="${value}"
+    # Declare variables globally to make them available in the environment
+    declare -g "${key}"="${value}"
   done < <(echo "${key_value_pairs}")
 
   print_message "Environment flags exported successfully."
@@ -95,7 +95,6 @@ apply_profile() {
   done
 
   # Display the configurations applied for the selected profile
-
   export_environment_flags "${json_file}" "${profile}"
   print_message "Configurations applied for profile: ${profile}"
 }

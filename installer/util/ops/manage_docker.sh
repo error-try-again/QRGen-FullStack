@@ -100,7 +100,7 @@ remove_conflicting_containers() {
     local container_name
     docker ps -a --format '{{.Names}}' | grep -E "${service}.*" | while read -r container_name; do
       echo "Removing container: ${container_name}"
-      docker rm -f "${container_name}"
+      docker rm -f "${container_name}" &>/dev/null
     done
   done
 }

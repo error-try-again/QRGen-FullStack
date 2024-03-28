@@ -143,21 +143,35 @@ configure_security_headers() {
 # description
 # Arguments:
 #   1
-#   2
 #######################################
-configure_acme_challenge() {
+configure_acme_location_block() {
   local use_letsencrypt="${1}"
-  local domain="${2}"
 
   if [[ ${use_letsencrypt} == "true"   ]]; then
-    echo_indented 4 "server {"
-    echo_indented 8 "listen 80;"
-    echo_indented 8 "listen [::]:80;"
-    echo_indented 8 "server_name ${domain};"
     echo_indented 8 "location /.well-known/acme-challenge/ {"
     echo_indented 12 "allow all;"
     echo_indented 12 "root /usr/share/nginx/html;"
     echo_indented 8 "}"
+  fi
+
+}
+
+#######################################
+# description
+# Arguments:
+#   1
+#   2
+#######################################
+configure_local_redirect() {
+  local use_letsencrypt="${1}"
+  local domain="${2}"
+
+  if [[ ${use_letsencrypt:-false} == "true" ]] || [[ ${use_self_signed_certs:-false} == "true"   ]]; then
+    echo_indented 4 "server {"
+    echo_indented 8 "listen 80;"
+    echo_indented 8 "listen [::]:80;"
+    echo_indented 8 "server_name ${domain};"
+    configure_acme_location_block "${use_letsencrypt}"
     echo_indented 8 "location / {"
     echo_indented 12 'return 301 https://$host$request_uri;'
     echo_indented 8 "}"
@@ -196,6 +210,7 @@ generate_listen_directives() {
 #   5
 #   6
 #   7
+#   8
 #######################################
 configure_additional_ssl_settings() {
   local dns_resolver="${1:-}"
@@ -205,6 +220,7 @@ configure_additional_ssl_settings() {
   local use_letsencrypt="${5:-false}"
   local use_self_signed_certs="${6:-false}"
   local use_tls_12_flag="${7:-false}"
+  local use_tls_13_flag="${8:-true}"
 
   if [[ ${use_letsencrypt:-false} == "true" ]] || [[ ${use_self_signed_certs:-false} == "true"   ]]; then
     configure_https "${nginx_ssl_port:-443}" "${dns_resolver:-1.1.1.1}" "${timeout:-5}" "${use_letsencrypt:-false}" "${use_self_signed_certs:-false}"
@@ -346,9 +362,9 @@ generate_nginx_configuration() {
       fi
 
       # Extract service-specific configurations with the exception of globals flags, e.g. backend_scheme
-      domains=$(echo "$service_config" | jq -r '.domains[]')
-      nginx_ssl_port=$(echo "${service_config}" | jq -r '.ports[] | select(test("443")) | split(":")[0]')
+      domains=$(echo "$service_config" | jq -r 'if .domains then .domains[] else empty end')
 
+      nginx_ssl_port=$(echo "${service_config}" | jq -r '.ports[] | select(test("443")) | split(":")[0]')
       mapfile -t ports < <(echo "${service_config}" | jq -r '.ports[]')
       backend_port=$(echo "${ports[0]}" | cut -d ":" -f2)
       host_port=$(echo "${ports}" | cut -d ":" -f1)
@@ -362,17 +378,16 @@ generate_nginx_configuration() {
           configure_server_name "${domain}"
           generate_listen_directives "${ports[@]}"
           # Generate static blocks
-          configure_additional_ssl_settings "${dns_resolver}" "${nginx_ssl_port}" "${timeout}" "${use_hsts}" "${use_letsencrypt}" "${use_self_signed_certs}" "${use_tls_12_flag}"
+          configure_additional_ssl_settings "${dns_resolver}" "${nginx_ssl_port}" "${timeout}" "${use_hsts}" "${use_letsencrypt}" "${use_self_signed_certs}" "${use_tls_12_flag}" "${use_tls_13_flag}"
           generate_default_location_block
           generate_default_file_location
           # Dynamic endpoint (/qr/) proxy configuration
           write_endpoints "${service_name}" "${backend_port}" "${backend_scheme}" "${release_branch}" "${unique_endpoint}" "${service_name}"
           echo_indented 4 "}"
+          # Configure ACME challenge for Let's Encrypt, if applicable
+          configure_local_redirect "${use_letsencrypt}" "${domain}"
         fi
-
         has_unique_endpoint=false
-        # Configure ACME challenge for Let's Encrypt, if applicable
-        configure_acme_challenge "${use_letsencrypt}" "${domain}"
       done
     done
 

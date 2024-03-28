@@ -8,7 +8,7 @@ set -euo pipefail
 #   1
 #######################################
 clean_compose_file() {
-    local compose_file="$1"
+    local compose_file="${1}"
     rm -f "${compose_file}"
 }
 
@@ -19,8 +19,8 @@ clean_compose_file() {
 #   2
 #######################################
 append_service_to_compose() {
-    local service_config_json="$1"
-    local compose_file="$2"
+    local service_config_json="${1}"
+    local compose_file="${2}"
 
     # Generates service configuration from JSON
     jq -r --argjson defaultPorts '[]' --argjson defaultVolumes '{}' --argjson defaultNetworks '[]' '
@@ -38,7 +38,8 @@ append_service_to_compose() {
         (.networks // $defaultNetworks | .[] | "      - \(.)"),
         (if (.depends_on // empty) | length > 0 then "    depends_on:" else empty end),
         (.depends_on // empty | .[] | "      - \(.)"),
-        "    restart: \(.restart // "no")"
+        "    restart: \(.restart // "no")",
+        (if (.command // empty) | length > 0 then "    command: \(.command)" else empty end)
     ' <<< "${service_config_json}" >> "${compose_file}"
 }
 
@@ -50,9 +51,9 @@ append_service_to_compose() {
 #   3
 #######################################
 append_global_configurations() {
-  local networks_json="$1"
-  local volumes_json="$2"
-  local compose_file="$3"
+  local networks_json="${1}"
+  local volumes_json="${2}"
+  local compose_file="${3}"
 
   # Check and append global networks if not empty
   if [ "$(jq -r 'keys | length' <<< "${networks_json}")" -gt 0 ]; then
@@ -77,7 +78,7 @@ append_global_configurations() {
 #  None
 #######################################
 generate_docker_compose() {
-  local compose_file="$1"
+  local compose_file="${1}"
   shift
   local service_configs=("$@")
 
@@ -85,7 +86,6 @@ generate_docker_compose() {
   echo "services:" >> "${compose_file}"
 
   local service_config
-
   for service_config in "${service_configs[@]}"; do
     append_service_to_compose "${service_config}" "${compose_file}"
   done

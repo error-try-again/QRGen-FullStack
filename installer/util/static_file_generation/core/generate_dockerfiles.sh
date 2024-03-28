@@ -15,18 +15,15 @@ set -euo pipefail
 generate_certbot_dockerfile() {
   print_multiple_messages "Configuring the Docker Certbot Image..."
 
-  local base_image="${certbot_base_image} as certbot"
+  local base_image="python:3.10-alpine3.16 as certbot"
   local entrypoint='[ "certbot" ]'
   local expose="80 443"
   local volumes="/etc/letsencrypt /var/lib/letsencrypt"
   local workdir="/opt/certbot"
   local cargo_net_git_fetch_with_cli="true"
+  local certbot_repo=https://github.com/error-try-again/certbot/archive/refs/heads/master.zip
 
   local dockerfile_template="FROM ${base_image}
-ENTRYPOINT ${entrypoint}
-EXPOSE ${expose}
-VOLUME ${volumes}
-WORKDIR ${workdir}
 
 RUN mkdir -p src \\
  && wget -O certbot-master.zip ${certbot_repo} \\
@@ -60,7 +57,13 @@ RUN apk add --no-cache --virtual .build-deps \\
             --editable src/acme \\
             --editable src/certbot \\
     && apk del .build-deps \\
-    && rm -rf \"${HOME}\"/.cargo"
+    && rm -rf \"${HOME}\"/.cargo
+
+WORKDIR ${workdir}
+VOLUME ${volumes}
+EXPOSE ${expose}
+ENTRYPOINT ${entrypoint}
+"
 
   backup_existing_file "${certbot_dockerfile}"
   echo -e "${dockerfile_template}" > "${certbot_dockerfile}"
@@ -94,7 +97,6 @@ generate_backend_dockerfile() {
   local origin
   origin="origin"/"${release_branch}"
   backup_existing_file "${backend_dockerfile}"
-
   cat << EOF > "${backend_dockerfile}"
 FROM node:${node_version}
 
@@ -141,6 +143,11 @@ generate_frontend_dockerfile() {
   local node_version="${3}"
   local release_branch="${4}"
   local use_google_api_key="${5}"
+  local sitemap_path="${6}"
+  local robots_path="${7}"
+  local nginx_conf_path="${8}"
+  local mime_types_path="${9}"
+  local nginx_version="${10}"
 
   print_message "Configuring the frontend Docker environment..."
   local origin="origin/${release_branch}"
@@ -156,7 +163,7 @@ RUN git init && \
         echo "Removing existing frontend directory"; \
         rm -rf frontend; \
     fi) && \
-    git submodule add --force "https://github.com/error-try-again/QRGen-frontend.git" frontend && \
+    git submodule add --force "$frontend_submodule_url" frontend && \
     git submodule update --init --recursive && \
     cd frontend && \
     git fetch --all && \
@@ -170,12 +177,12 @@ RUN git init && \
 WORKDIR /usr/app/frontend
 RUN npm run build
 
-FROM nginx:alpine
-COPY frontend/sitemap.xml /usr/share/nginx/html/sitemap.xml
-COPY frontend/robots.txt /usr/share/nginx/html/robots.txt
+FROM nginx:$nginx_version
+COPY $sitemap_path /usr/share/nginx/html/sitemap.xml
+COPY $robots_path /usr/share/nginx/html/robots.txt
 COPY --from=build /usr/app/frontend/dist /usr/share/nginx/html
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
-COPY nginx/mime.types /etc/nginx/mime.types
+COPY $nginx_conf_path /etc/nginx/nginx.conf
+COPY $mime_types_path /etc/nginx/mime.types
 
 # Create logs directory
 RUN mkdir -p /usr/share/nginx/logs && \
@@ -183,7 +190,7 @@ RUN mkdir -p /usr/share/nginx/logs && \
     touch /usr/share/nginx/logs/access.log
 
 RUN mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
-    chmod -R 777 /usr/share/nginx/html/.well-known
+    chmod -R 755 /usr/share/nginx/html/.well-known
 
 EXPOSE ${exposed_nginx_port}
 CMD ["nginx", "-g", "daemon off;"]

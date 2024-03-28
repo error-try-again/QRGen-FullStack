@@ -8,7 +8,6 @@ set -euo pipefail
 #   auto_install_flag
 #   backend_directory
 #   backend_dockerfile
-#   backend_dotenv_file
 #   backend_scheme
 #   backend_submodule_url
 #   build_certbot_image
@@ -25,14 +24,19 @@ set -euo pipefail
 #   frontend_submodule_url
 #   google_maps_api_key
 #   install_profile
+#   mime_types_path
+#   nginx_conf_path
 #   nginx_configuration_file
 #   nginx_mime_types_file
+#   nginx_version
 #   node_version
 #   project_logs_dir
 #   project_root_dir
 #   release_branch
 #   robots_file
+#   robots_path
 #   service_to_standard_config_map
+#   sitemap_path
 #   sitemap_xml
 #   timeout
 #   use_google_api_key
@@ -73,7 +77,6 @@ setup() {
   # Generates the nginx mime.types file for the nginx server
   generate_nginx_mime_types "${nginx_mime_types_file}"
 
-
   # Generates the dotenv responsible for passing variables to the frontend
   generate_frontend_dotenv "${frontend_dotenv_file}" "${use_google_api_key}"
 
@@ -81,7 +84,7 @@ setup() {
   generate_backend_dockerfile "${backend_dockerfile}" "${backend_submodule_url}" "${node_version}" "${release_branch}" "${express_port}" "${use_ssl_flag}" "${backend_scheme}://${domain}" "${google_maps_api_key}"
 
   # Generates the frontend Dockerfile responsible for building the frontend image
-  generate_frontend_dockerfile "${frontend_dockerfile}" "${frontend_submodule_url}" "${node_version}" "${release_branch}" "${use_google_api_key}"
+  generate_frontend_dockerfile "${frontend_dockerfile}" "${frontend_submodule_url}" "${node_version}" "${release_branch}" "${use_google_api_key}" "${sitemap_path}" "${robots_path}" "${nginx_conf_path}" "${mime_types_path}" "${nginx_version}"
 
   [[ ${build_certbot_image} == "true" ]] && generate_certbot_dockerfile
 

@@ -174,7 +174,6 @@ source_global_configurations() {
   export nginx_configuration_file="${project_root_dir}/nginx/nginx.conf"
   export nginx_mime_types_file="${project_root_dir}/nginx/mime.types"
   export docker_compose_file="${project_root_dir}/docker-compose.yml"
-  export backend_dotenv_file="${backend_directory}/.env"
   export backend_dockerfile="${backend_directory}/Dockerfile"
   export frontend_dockerfile="${frontend_dir}/Dockerfile"
   export frontend_dotenv_file="${frontend_dir}/.env"
@@ -215,6 +214,15 @@ source_global_configurations() {
   # ------------------
   export install_profile=profiles/main_install_profiles.json
   export letsencrypt_automatic_profile=profiles/le_auto_profiles.json
-
   export diffie_hellman_parameter_bit_size=
+
+
+  # ------------------
+  # Frontend Dockerfile
+  # ------------------
+  export nginx_version="latest"
+  export sitemap_path="frontend/sitemap.xml"
+  export robots_path="frontend/robots.txt"
+  export nginx_conf_path="nginx/nginx.conf"
+  export mime_types_path="nginx/mime.types"
 }

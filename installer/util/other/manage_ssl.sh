@@ -42,6 +42,11 @@ generate_self_signed_certificates_for_services() {
     local domains
     mapfile -t domains < <(echo "$service_config" | jq -r '.domains[]')
 
+    # Handle null domains
+    if [[ ${#domains[@]} -eq 0 ]]; then
+      continue
+    fi
+
     for domain in "${domains[@]}"; do
       local certs_path="${certs_dir}/${domain}"
       local fullchain_path="${certs_path}/fullchain.pem"
@@ -61,10 +66,11 @@ generate_self_signed_certificates_for_services() {
     for service_name in "${!service_to_standard_config_map[@]}"; do
       local service_config="${service_to_standard_config_map[$service_name]}"
       local domains
-      mapfile -t domains < <(echo "$service_config" | jq -r '.domains[]')
-      for domain in "${domains[@]}"; do
-        generate_certificate_if_needed "${domain}" "${certs_dir}" "${rsa_key_size}" "${regenerate_ssl_certificates}"
-      done
+
+        mapfile -t domains < <(echo "$service_config" | jq -r '.domains[]')
+        for domain in "${domains[@]}"; do
+          generate_certificate_if_needed "${domain}" "${certs_dir}" "${rsa_key_size}" "${regenerate_ssl_certificates}"
+        done
     done
   else
     echo "All certificates are up to date; skipping regeneration."
