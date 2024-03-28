@@ -160,7 +160,8 @@ source_global_configurations() {
   # ------------------
   # Directory Structure
   # ------------------
-  export project_root_dir="$(pwd)"
+  export project_root_dir
+  project_root_dir="$(pwd)"
   export project_logs_dir="${project_root_dir}/logs"
   export backend_directory="${project_root_dir}/backend"
   export frontend_dir="${project_root_dir}/frontend"
