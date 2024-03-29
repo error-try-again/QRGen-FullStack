@@ -236,7 +236,7 @@ COPY ${args[mime_types_path]} /usr/share/nginx/mime.types
 
 RUN mkdir -p /usr/share/nginx/logs && \
     touch /usr/share/nginx/logs/error.log && \
-    touch /usr/share/nginx/logs/access.log &&
+    touch /usr/share/nginx/logs/access.log
 
 RUN mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
     chmod -R 755 /usr/share/nginx/html/.well-known
