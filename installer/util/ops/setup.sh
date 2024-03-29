@@ -81,6 +81,7 @@ setup() {
   robots_path="frontend/robots.txt"
   frontend_dotenv_file="frontend/.env"
   nginx_version="alpine"
+  origin="$backend_scheme://$domain"
 
   # Generates the sitemap.xml file for the website to be indexed by search engines - ${backend_scheme}://${domain} is used as the origin
   generate_sitemap \
@@ -109,7 +110,7 @@ setup() {
   "${express_port}" \
   "${use_ssl_flag}" \
   "${google_maps_api_key}" \
-  "${backend_scheme}://${domain}" \
+  "${origin}"
 
   # Generates the frontend Dockerfile responsible for building the frontend image
   generate_frontend_dockerfile \
