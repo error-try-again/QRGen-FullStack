@@ -142,12 +142,10 @@ remove_user() {
   sudo deluser --remove-home "${user_name}"
 }
 
-
 # 
 docker_preflight() {
  systemctl disable --now docker.service docker.socket
 }
-
 
 #######################################
 # Sets up NVM and Node.js for the specified user.
@@ -282,7 +280,6 @@ main() {
 
   user_name="${1:-docker-primary}"
   nvm_install_url="https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh"
-  node_version="latest"
 
   installation_menu
 }

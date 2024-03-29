@@ -81,7 +81,11 @@ generate_self_signed_certificates_for_services() {
 # Arguments:
 #   domain, certs_dir, rsa_key_size, regenerate
 generate_certificate_if_needed() {
-  local domain="${1}" certs_dir="${2}" rsa_key_size="${3}" regenerate="${4}"
+  local domain="${1}"
+  local certs_dir="${2}"
+  local rsa_key_size="${3}"
+  local regenerate="${4}"
+
   local certs_path="${certs_dir}/${domain}"
   local fullchain_path="${certs_path}/fullchain.pem"
   local privkey_path="${certs_path}/privkey.pem"

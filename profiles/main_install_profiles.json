@@ -14,7 +14,7 @@
       ],
       "restart": "on-failure",
       "domains": [
-        "localhost"
+        "qr-gen.net"
       ],
       "locations": [
         "/qr/"
@@ -54,13 +54,13 @@
       "dockerfile": "./certbot/Dockerfile",
       "container_name": "certbot",
       "entrypoint": "/bin/sh",
-      "command": "certonly --webroot --webroot-path=/etc/letsencrypt/live/localhost --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --staging --dry-run --overwrite-cert-dirs --domains localhost.me",
+      "command": "certonly --webroot --webroot-path=/etc/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --staging --dry-run --overwrite-cert-dirs --domains qr-gen.net",
       "ports": [
         "80:80"
       ],
       "volumes": {
         "./certbot/logs": "/var/log/letsencrypt",
-        "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
+        "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
         "./nginx/html": "/etc/nginx/html"
       },
@@ -70,7 +70,7 @@
       "depends_on": [
         "nginx"
       ],
-      "restart": "on-failure"
+      "restart": "no"
     }
   },
   "networks": {
@@ -96,10 +96,10 @@
             "3001:3001"
           ],
           "domains": [
-            "localhost"
+            "qr-gen.net"
           ],
           "volumes": {
-            "./certs/live/localhost": "/etc/ssl/certs/"
+            "./certs/live/qr-gen.net": "/etc/ssl/certs/"
           }
         },
         "nginx": {
@@ -117,7 +117,7 @@
             "./nginx/conf.d": "/etc/nginx/conf.d",
             "./nginx/ssl": "/etc/nginx/ssl",
             "./nginx/logs": "/usr/share/nginx/logs",
-            "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
+            "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
             "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
           }
         }
