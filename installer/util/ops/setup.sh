@@ -77,10 +77,10 @@ setup() {
   # TODO: fix the following hardcoding
   local domain sitemap_path robots_path nginx_conf_path frontend_dotenv_file
   domain="localhost"
-  sitemap_path="${project_root_dir}/sitemap.xml"
-  robots_path="${project_root_dir}/robots.txt"
-  nginx_conf_path="${project_root_dir}/nginx.conf"
-  frontend_dotenv_file="${frontend_dir}/.env"
+  sitemap_path="${project_root_dir}/frontend/sitemap.xml"
+  robots_path="${project_root_dir}/frontend/robots.txt"
+  frontend_dotenv_file="${frontend_dir}/frontend/.env"
+  nginx_conf_path="${project_root_dir}/nginx/nginx.conf"
 
   # Generates the sitemap.xml file for the website to be indexed by search engines - ${backend_scheme}://${domain} is used as the origin
   generate_sitemap \
