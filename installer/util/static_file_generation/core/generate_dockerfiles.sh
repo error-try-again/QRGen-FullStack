@@ -104,8 +104,8 @@ WORKDIR /usr/app
 
 RUN git init
 
-RUN git submodule add --force "${backend_submodule_url}" backend \
-    && git submodule update --init --recursive
+RUN git submodule add --force "${backend_submodule_url}" backend
+RUN git submodule update --init --recursive
 
 RUN cd backend \
     && git fetch --all \

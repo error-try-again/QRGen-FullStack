@@ -2,6 +2,7 @@
   "services": {
     "express_service": {
       "name": "express_service",
+      "image": "node:latest",
       "container_name": "express_service",
       "context": ".",
       "dockerfile": "./backend/Dockerfile",

@@ -40,24 +40,7 @@ build_and_run_docker() {
   # Handle certificates
   handle_certs
 
-  # Building and running docker services with or without cache based on flag
-  local service_name
-  for service_name in "${!service_to_standard_config_map[@]}"; do
-    local cache_option=""
-
-    if [[ ${disable_docker_build_caching} == "true"   ]]; then
-      cache_option="--no-cache"
-    fi
-
-    # Parse the service name and build the service
-    local name
-    name=$(echo "${service_name}" | tr '[:upper:]' '[:lower:]')
-    docker compose build ${cache_option} "${name}" && docker compose up -d --force-recreate --renew-anon-volumes "${name}"
-
-    if [[ ${build_certbot_image} == "true" ]]; then
-      docker compose build --no-cache certbot && docker compose up -d certbot
-    fi
-  done
+  docker compose build --no-cache && docker compose up -d --force-recreate --renew-anon-volumes
 
   # Dump logs
   dump_compose_logs "${docker_compose_file}" "${project_logs_dir}"
