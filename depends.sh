@@ -163,9 +163,9 @@ export NVM_DIR="/home/${user_name}/.nvm"
 export npm_config_cache="/home/${user_name}/.npm"
 curl -o- ${nvm_install_url} | bash
 source "\$NVM_DIR/nvm.sh"
-nvm install ${node_version}
-nvm use ${node_version}
-nvm alias default ${node_version}
+nvm install node
+nvm use node
+nvm alias default node
 npm install -g npm
 EOF
   else
