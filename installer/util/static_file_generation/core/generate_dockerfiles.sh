@@ -107,14 +107,15 @@ validate_argument_exists() {
 #######################################
 generate_backend_dockerfile() {
   declare -A args=(
-      [backend_dockerfile]="${1}"
-      [backend_submodule_url]="${2}"
-      [node_version]="${3}"
-      [release_branch]="${4}"
-      [port]="${5}"
-      [use_ssl_flag]="${6}"
-      [google_maps_api_key]="${7}"
-      [origin]="origin/${8}"
+       [backend_dockerfile]="${1}"
+       [backend_submodule_url]="${2}"
+       [node_version]="${3}"
+       [release_branch]="${4}"
+       [port]="${5}"
+       [use_ssl_flag]="${6}"
+       [google_maps_api_key]="${7}"
+       [backend_scheme]="${8}"
+       [domain]="${9}"
   )
 
   for arg_name in "${!args[@]}"; do
@@ -123,6 +124,8 @@ generate_backend_dockerfile() {
     fi
     validate_argument_exists "${args[$arg_name]}" "$arg_name"
   done
+
+  local origin="${args[backend_scheme]}://${args[domain]}"
 
   print_message "Configuring the Docker Backend at ${args[backend_dockerfile]}..."
   backup_existing_file "${args[backend_dockerfile]}"
@@ -182,17 +185,17 @@ EOF
 #######################################
 generate_frontend_dockerfile() {
   declare -A args=(
-      [frontend_dockerfile]="${1}"
-      [frontend_submodule_url]="${2}"
-      [node_version]="${3}"
-      [release_branch]="${4}"
-      [use_google_api_key]="${5}"
-      [sitemap_path]="${6}"
-      [robots_path]="${7}"
-      [nginx_conf_path]="${8}"
-      [mime_types_path]="${9}"
-      [nginx_version]="${10}"
-      [exposed_nginx_port]="${11}"
+       [frontend_dockerfile]="${1}"
+       [frontend_submodule_url]="${2}"
+       [node_version]="${3}"
+       [release_branch]="${4}"
+       [use_google_api_key]="${5}"
+       [sitemap_path]="${6}"
+       [robots_path]="${7}"
+       [nginx_conf_path]="${8}"
+       [mime_types_path]="${9}"
+       [nginx_version]="${10}"
+       [exposed_nginx_port]="${11}"
   )
 
   for arg_name in "${!args[@]}"; do
