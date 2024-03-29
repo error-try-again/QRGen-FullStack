@@ -52,6 +52,7 @@ dump_compose_logs() {
   for service in ${services}; do
     dump_service_logs "${service}" "${datetime}" "${output_dir}"
   done
+
 }
 
 #######################################
@@ -66,10 +67,10 @@ dump_service_logs() {
   local datetime="${2}"
   local docker_compose_file="${3}"
 
-  print_multiple_messages "Dumping logs for service: ${service}" "${docker_compose_file}"
+  print_message "Dumping logs for service: ${service}" "${docker_compose_file}"
 
   local log_file="${docker_compose_file}/${service}_${datetime// /_}.log"
-  docker compose -f "${docker_compose_file}" logs "${service}" | tee "${log_file}"
+  docker compose logs "${service}" | tee "${log_file}"
 
-  print_multiple_messages "Logs saved to ${log_file}"
+  print_message "Logs saved to ${log_file}"
 }
