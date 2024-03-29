@@ -2,23 +2,21 @@
   "services": {
     "express_service": {
       "name": "express_service",
-      "image": "node:latest",
       "container_name": "express_service",
       "context": ".",
       "dockerfile": "./backend/Dockerfile",
-      "ports": [
-        "8080:8080"
-      ],
-      "networks": [
-        "qrgen"
-      ],
+      "ports": ["3001:3001"],
+      "networks": ["qrgen"],
       "restart": "on-failure",
-      "domains": [
-        "qr-gen.net"
-      ],
+
       "locations": [
         "/qr/"
-      ]
+      ],
+      "volumes": {
+        "./nginx": "/etc/nginx",
+        "./nginx/logs": "/etc/nginx/logs",
+        "./certs/live/qr-gen.net": "/etc/ssl/certs/"
+      }
     },
     "nginx": {
       "name": "nginx",
@@ -27,14 +25,12 @@
       "context": ".",
       "dockerfile": "./frontend/Dockerfile",
       "ports": [
-        "80:80",
         "443:443"
       ],
       "volumes": {
         "./nginx": "/etc/nginx",
-        "./nginx/conf.d": "/etc/nginx/conf.d",
-        "./nginx/logs": "/usr/share/nginx/logs",
-        "./certs": "/etc/letsencrypt/live/",
+        "./nginx/logs": "/etc/nginx/logs",
+        "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
       },
       "networks": [
@@ -43,10 +39,7 @@
       "depends_on": [
         "express_service"
       ],
-      "restart": "on-failure",
-      "domains": [
-        "localhost"
-      ]
+      "restart": "on-failure"
     },
     "certbot": {
       "name": "certbot",
@@ -60,7 +53,7 @@
       ],
       "volumes": {
         "./certbot/logs": "/var/log/letsencrypt",
-        "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
+        "./certs": "/etc/letsencrypt/live/",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
         "./nginx/html": "/etc/nginx/html"
       },
@@ -92,34 +85,9 @@
       ],
       "overrides": {
         "express_service": {
-          "ports": [
-            "3001:3001"
-          ],
           "domains": [
             "qr-gen.net"
-          ],
-          "volumes": {
-            "./certs/live/qr-gen.net": "/etc/ssl/certs/"
-          }
-        },
-        "nginx": {
-          "ports": [
-            "443:443"
-          ],
-          "domains": [
-            "localhost"
-          ],
-          "depends_on": [
-            "express_service"
-          ],
-          "volumes": {
-            "./nginx": "/etc/nginx",
-            "./nginx/conf.d": "/etc/nginx/conf.d",
-            "./nginx/ssl": "/etc/nginx/ssl",
-            "./nginx/logs": "/usr/share/nginx/logs",
-            "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
-            "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
-          }
+          ]
         }
       },
       "networks": {
@@ -198,9 +166,8 @@
           "restart": "on-failure",
           "volumes": {
             "./nginx": "/etc/nginx",
-            "./nginx/conf.d": "/etc/nginx/conf.d",
             "./nginx/ssl": "/etc/nginx/ssl",
-            "./nginx/logs": "/usr/share/nginx/logs",
+            "./nginx/logs": "/etc/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost"
           }
         },
@@ -216,9 +183,8 @@
           ],
           "volumes": {
             "./nginx": "/etc/nginx",
-            "./nginx/conf.d": "/etc/nginx/conf.d",
             "./nginx/ssl": "/etc/nginx/ssl",
-            "./nginx/logs": "/usr/share/nginx/logs",
+            "./nginx/logs": "/etc/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
             "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
           }
@@ -273,9 +239,8 @@
           ],
           "volumes": {
             "./nginx": "/etc/nginx",
-            "./nginx/conf.d": "/etc/nginx/conf.d",
             "./nginx/ssl": "/etc/nginx/ssl",
-            "./nginx/logs": "/usr/share/nginx/logs",
+            "./nginx/logs": "/etc/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
             "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
           }
