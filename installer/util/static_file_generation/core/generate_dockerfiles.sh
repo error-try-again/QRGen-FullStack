@@ -93,7 +93,7 @@ generate_backend_dockerfile() {
   local origin="${8}"
 
   if [[ -z ${backend_dockerfile} || -z ${backend_submodule_url} || -z ${node_version} || -z ${release_branch} || -z ${port} || -z ${use_ssl_flag} || -z ${google_maps_api_key} || -z ${origin}                 ]]; then
-    print_error "One or more required values are not initialized"
+    print_message "One or more required values are not initialized"
     exit 1
   fi
 
@@ -160,7 +160,7 @@ generate_frontend_dockerfile() {
 
   # Validate all values are initialized
   if [[ -z ${frontend_dockerfile} || -z ${frontend_submodule_url} || -z ${node_version} || -z ${release_branch} || -z ${use_google_api_key} || -z ${sitemap_path} || -z ${robots_path} || -z ${nginx_conf_path} || -z ${mime_types_path} || -z ${nginx_version}                     ]]; then
-    print_error "One or more required values are not initialized"
+    print_message "One or more required values are not initialized"
     exit 1
   fi
 
