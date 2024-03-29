@@ -107,15 +107,14 @@ validate_argument_exists() {
 #######################################
 generate_backend_dockerfile() {
   declare -A args=(
-       [backend_dockerfile]="${1}"
-       [backend_submodule_url]="${2}"
-       [node_version]="${3}"
-       [release_branch]="${4}"
-       [port]="${5}"
-       [use_ssl_flag]="${6}"
-       [google_maps_api_key]="${7}"
-       [backend_scheme]="${8}"
-       [domain]="${9}"
+      [backend_dockerfile]="${1}"
+      [backend_submodule_url]="${2}"
+      [node_version]="${3}"
+      [release_branch]="${4}"
+      [port]="${5}"
+      [use_ssl_flag]="${6}"
+      [google_maps_api_key]="${7}"
+      [backend_scheme]="${8}"
   )
 
   for arg_name in "${!args[@]}"; do
@@ -125,7 +124,8 @@ generate_backend_dockerfile() {
     validate_argument_exists "${args[$arg_name]}" "$arg_name"
   done
 
-  local origin="${args[backend_scheme]}://${args[domain]}"
+  local origin
+  origin="origin"/"${release_branch}"
 
   print_message "Configuring the Docker Backend at ${args[backend_dockerfile]}..."
   backup_existing_file "${args[backend_dockerfile]}"
