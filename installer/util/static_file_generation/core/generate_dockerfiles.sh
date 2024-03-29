@@ -74,6 +74,19 @@ ENTRYPOINT ${entrypoint}
 # description
 # Arguments:
 #   1
+#######################################
+validate_argument_exists() {
+  if [[ -z ${1} ]]; then
+    print_message "${1} is not initialized"
+    exit 1
+  fi
+
+}
+
+#######################################
+# description
+# Arguments:
+#   1
 #   2
 #   3
 #   4
@@ -92,10 +105,10 @@ generate_backend_dockerfile() {
   local google_maps_api_key="${7}"
   local origin="${8}"
 
-  if [[ -z ${backend_dockerfile} || -z ${backend_submodule_url} || -z ${node_version} || -z ${release_branch} || -z ${port} || -z ${use_ssl_flag} || -z ${google_maps_api_key} || -z ${origin}                 ]]; then
-    print_message "One or more required values are not initialized"
-    exit 1
-  fi
+  local arg
+  for arg in "${backend_dockerfile}" "${backend_submodule_url}" "${node_version}" "${release_branch}" "${port}" "${use_ssl_flag}" "${google_maps_api_key}" "${origin}"; do
+    validate_argument_exists "${arg}"
+  done
 
   print_multiple_messages "Configuring the Docker Backend at ${backend_dockerfile}"
   local origin
@@ -158,11 +171,10 @@ generate_frontend_dockerfile() {
   local mime_types_path="${9}"
   local nginx_version="${10}"
 
-  # Validate all values are initialized
-  if [[ -z ${frontend_dockerfile} || -z ${frontend_submodule_url} || -z ${node_version} || -z ${release_branch} || -z ${use_google_api_key} || -z ${sitemap_path} || -z ${robots_path} || -z ${nginx_conf_path} || -z ${mime_types_path} || -z ${nginx_version}                     ]]; then
-    print_message "One or more required values are not initialized"
-    exit 1
-  fi
+  local arg
+  for arg in "${frontend_dockerfile}" "${frontend_submodule_url}" "${node_version}" "${release_branch}" "${use_google_api_key}" "${sitemap_path}" "${robots_path}" "${nginx_conf_path}" "${mime_types_path}" "${nginx_version}"; do
+    validate_argument_exists "${arg}"
+  done
 
   print_message "Configuring the frontend Docker environment..."
   local origin="origin/${release_branch}"
