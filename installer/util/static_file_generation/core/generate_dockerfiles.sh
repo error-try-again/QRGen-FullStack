@@ -213,19 +213,27 @@ FROM node:${args[node_version]} as build
 WORKDIR /usr/app
 
 RUN git init && \
+    echo "Adding submodule..." && \
     (if [ ! -d "frontend" ]; then \
         git submodule add --force "${args[frontend_submodule_url]}" frontend; \
     fi) && \
+    echo "Updating submodule..." && \
     git submodule update --init --recursive && \
     cd frontend && \
+    echo "Fetching all branches..." && \
     git fetch --all && \
+    echo "Resetting hard to specified branch..." && \
     git reset --hard "origin/${args[release_branch]}" && \
     git checkout "${args[release_branch]}" && \
+    echo "Installing dependencies..." && \
     npm install && \
     (if [ "${args[use_google_api_key]}" = "true" ]; then \
+        echo "Setting Google SDK enabled..." && \
         sed -i'' -e 's/export const googleSdkEnabled = false;/export const googleSdkEnabled = true;/' src/config.tsx; \
     fi) && \
-    npm run build
+    echo "Building project..."
+
+RUN npm run build && ls -la /usr/app/frontend/dist
 
 FROM nginx:${args[nginx_version]}
 COPY ${args[sitemap_path]} /usr/share/nginx/html/sitemap.xml
