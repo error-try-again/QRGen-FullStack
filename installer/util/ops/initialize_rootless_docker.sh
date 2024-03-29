@@ -64,9 +64,14 @@ initialize_rootless_docker() {
   local uid
   uid=$(id -u)
 
-  insert_into_bashrc "export PATH=/usr/bin:${PATH}"
+  local bashrc_path="$HOME/.bashrc"
+  local backup_path="${bashrc_path}.backup"
+  # Create a backup of .bashrc
+  cp "$bashrc_path" "$backup_path"
+  echo "Backup of .bashrc created at ${backup_path}."
+
   insert_into_bashrc "export XDG_RUNTIME_DIR=/run/user/${uid}"
-  insert_into_bashrc "DOCKER_HOST=unix:///run/user/${uid}/docker.sock"
+  insert_into_bashrc "export DOCKER_HOST=unix:///run/user/${uid}/docker.sock"
 
   # Manage Docker's systemd services.
   systemctl --user start docker.service
