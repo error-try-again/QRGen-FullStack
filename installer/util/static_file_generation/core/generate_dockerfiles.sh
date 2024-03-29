@@ -81,7 +81,6 @@ ENTRYPOINT ${entrypoint}
 #   6
 #   7
 #   8
-#   9
 #######################################
 generate_backend_dockerfile() {
   local backend_dockerfile="${1}"
@@ -92,6 +91,11 @@ generate_backend_dockerfile() {
   local use_ssl_flag="${6}"
   local google_maps_api_key="${7}"
   local origin="${8}"
+
+  if [[ -z ${backend_dockerfile} || -z ${backend_submodule_url} || -z ${node_version} || -z ${release_branch} || -z ${port} || -z ${use_ssl_flag} || -z ${google_maps_api_key} || -z ${origin}                 ]]; then
+    print_error "One or more required values are not initialized"
+    exit 1
+  fi
 
   print_multiple_messages "Configuring the Docker Backend at ${backend_dockerfile}"
   local origin
@@ -132,10 +136,15 @@ EOF
 #   exposed_nginx_port
 # Arguments:
 #   1
+#   10
 #   2
 #   3
 #   4
 #   5
+#   6
+#   7
+#   8
+#   9
 #######################################
 generate_frontend_dockerfile() {
   local frontend_dockerfile="${1}"
@@ -148,6 +157,12 @@ generate_frontend_dockerfile() {
   local nginx_conf_path="${8}"
   local mime_types_path="${9}"
   local nginx_version="${10}"
+
+  # Validate all values are initialized
+  if [[ -z ${frontend_dockerfile} || -z ${frontend_submodule_url} || -z ${node_version} || -z ${release_branch} || -z ${use_google_api_key} || -z ${sitemap_path} || -z ${robots_path} || -z ${nginx_conf_path} || -z ${mime_types_path} || -z ${nginx_version}                     ]]; then
+    print_error "One or more required values are not initialized"
+    exit 1
+  fi
 
   print_message "Configuring the frontend Docker environment..."
   local origin="origin/${release_branch}"
