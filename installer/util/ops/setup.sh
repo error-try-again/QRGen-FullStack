@@ -80,7 +80,7 @@ setup() {
   sitemap_path="frontend/sitemap.xml"
   robots_path="frontend/robots.txt"
   frontend_dotenv_file="frontend/.env"
-  nginx_version="latest"
+  nginx_version="stable-alpine3.17-slim"
 
   # Generates the sitemap.xml file for the website to be indexed by search engines - ${backend_scheme}://${domain} is used as the origin
   generate_sitemap \
