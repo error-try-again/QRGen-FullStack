@@ -122,7 +122,8 @@ setup() {
   "${robots_path}" \
   "${nginx_conf_path}" \
   "${mime_types_path}" \
-  "${nginx_version}"
+  "${nginx_version}" \
+  "${exposed_nginx_port}"
 
   [[ ${build_certbot_image} == "true" ]] && generate_certbot_dockerfile
 

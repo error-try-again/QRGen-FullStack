@@ -71,20 +71,30 @@ ENTRYPOINT ${entrypoint}
 }
 
 #######################################
-# description
+# Take the variable value and the variable name and validate that the variable is not empty
 # Arguments:
-#   1
+#   $1 - The variable value
+#   $2 - The variable name
 #######################################
 validate_argument_exists() {
   if [[ -z ${1} ]]; then
-    print_message "${1} is not initialized"
+    print_message "${2} is not initialized"
     exit 1
   fi
-
 }
 
 #######################################
 # description
+# Globals:
+#   arg_name
+#   backend_dockerfile
+#   backend_submodule_url
+#   google_maps_api_key
+#   node_version
+#   origin
+#   port
+#   release_branch
+#   use_ssl_flag
 # Arguments:
 #   1
 #   2
@@ -96,60 +106,67 @@ validate_argument_exists() {
 #   8
 #######################################
 generate_backend_dockerfile() {
-  local backend_dockerfile="${1}"
-  local backend_submodule_url="${2}"
-  local node_version="${3}"
-  local release_branch="${4}"
-  local port="${5}"
-  local use_ssl_flag="${6}"
-  local google_maps_api_key="${7}"
-  local origin="${8}"
+  declare -A args=(
+     [backend_dockerfile]="${1}"
+     [backend_submodule_url]="${2}"
+     [node_version]="${3}"
+     [release_branch]="${4}"
+     [port]="${5}"
+     [use_ssl_flag]="${6}"
+     [google_maps_api_key]="${7}"
+     [origin]="origin/${8}"
+  )
 
-  local arg
-  for arg in "${backend_dockerfile}" "${backend_submodule_url}" "${node_version}" "${release_branch}" "${port}" "${use_ssl_flag}" "${google_maps_api_key}" "${origin}"; do
-    validate_argument_exists "${arg}"
+  for arg_name in "${!args[@]}"; do
+    validate_argument_exists "${args[$arg_name]}" "$arg_name"
   done
 
-  print_multiple_messages "Configuring the Docker Backend at ${backend_dockerfile}"
-  local origin
-  origin="origin"/"${release_branch}"
-  backup_existing_file "${backend_dockerfile}"
-  cat << EOF > "${backend_dockerfile}"
-FROM node:${node_version}
+  print_message "Configuring the Docker Backend at ${args[backend_dockerfile]}..."
+  backup_existing_file "${args[backend_dockerfile]}"
+  cat << EOF > "${args[backend_dockerfile]}"
+FROM node:${args[node_version]}
 
 WORKDIR /usr/app
 
-RUN git init
+# Chain git commands for efficiency and clarity
+RUN git init && \
+    git submodule add --force "${args[backend_submodule_url]}" backend && \
+    git submodule update --init --recursive && \
+    cd backend && \
+    git fetch --all && \
+    git reset --hard "${args[origin]}" && \
+    git checkout "${args[release_branch]}" && \
+    npm install
 
-RUN git submodule add --force "${backend_submodule_url}" backend
-RUN git submodule update --init --recursive
+ENV ORIGIN=${args[origin]}
+ENV USE_SSL=${args[use_ssl_flag]}
+ENV GOOGLE_MAPS_API_KEY=${args[google_maps_api_key]}
 
-RUN cd backend \
-    && git fetch --all \
-    && git reset --hard "${origin}" \
-    && git checkout "${release_branch}" \
-    && npm install \
-    && cd ..
-
-ENV ORIGIN=${origin}
-ENV USE_SSL=${use_ssl_flag}
-ENV GOOGLE_MAPS_API_KEY=${google_maps_api_key}
-
-EXPOSE ${port}
+EXPOSE ${args[port]}
 
 CMD ["npx", "ts-node", "/usr/app/backend/src/server.ts"]
 
 EOF
-  print_message "Successfully generated Dockerfile at ${backend_dockerfile}"
+  print_message "Successfully generated Dockerfile at ${args[backend_dockerfile]}"
 }
 
 #######################################
 # description
 # Globals:
+#   arg_name
 #   exposed_nginx_port
+#   frontend_dockerfile
+#   frontend_submodule_url
+#   mime_types_path
+#   nginx_conf_path
+#   node_version
+#   release_branch
+#   sitemap_path
+#   use_google_api_key
 # Arguments:
 #   1
 #   10
+#   11
 #   2
 #   3
 #   4
@@ -160,68 +177,63 @@ EOF
 #   9
 #######################################
 generate_frontend_dockerfile() {
-  local frontend_dockerfile="${1}"
-  local frontend_submodule_url="${2}"
-  local node_version="${3}"
-  local release_branch="${4}"
-  local use_google_api_key="${5}"
-  local sitemap_path="${6}"
-  local robots_path="${7}"
-  local nginx_conf_path="${8}"
-  local mime_types_path="${9}"
-  local nginx_version="${10}"
+  declare -A args=(
+     [frontend_dockerfile]="${1}"
+     [frontend_submodule_url]="${2}"
+     [node_version]="${3}"
+     [release_branch]="${4}"
+     [use_google_api_key]="${5}"
+     [sitemap_path]="${6}"
+     [robots_path]="${7}"
+     [nginx_conf_path]="${8}"
+     [mime_types_path]="${9}"
+     [nginx_version]="${10}"
+     [exposed_nginx_port]="${11}"
+  )
 
-  local arg
-  for arg in "${frontend_dockerfile}" "${frontend_submodule_url}" "${node_version}" "${release_branch}" "${use_google_api_key}" "${sitemap_path}" "${robots_path}" "${nginx_conf_path}" "${mime_types_path}" "${nginx_version}"; do
-    validate_argument_exists "${arg}"
+  for arg_name in "${!args[@]}"; do
+    validate_argument_exists "${args[$arg_name]}" "$arg_name"
   done
 
   print_message "Configuring the frontend Docker environment..."
-  local origin="origin/${release_branch}"
-  backup_existing_file "${frontend_dockerfile}"
-  print_message "Configuring Dockerfile at ${frontend_dockerfile}"
-  cat << EOF > "${frontend_dockerfile}"
-FROM node:${node_version} as build
+  backup_existing_file "${args[frontend_dockerfile]}"
+  print_message "Configuring Dockerfile at ${args[frontend_dockerfile]}"
+  cat << EOF > "${args[frontend_dockerfile]}"
+FROM node:${args[node_version]} as build
 
 WORKDIR /usr/app
 
 RUN git init && \
-    (if [ -d "frontend" ]; then \
-        echo "Removing existing frontend directory"; \
-        rm -rf frontend; \
+    (if [ ! -d "frontend" ]; then \
+        git submodule add --force "${args[frontend_submodule_url]}" frontend; \
     fi) && \
-    git submodule add --force "$frontend_submodule_url" frontend && \
     git submodule update --init --recursive && \
     cd frontend && \
     git fetch --all && \
-    git reset --hard "${origin}" && \
-    git checkout "${release_branch}" && \
+    git reset --hard "origin/${args[release_branch]}" && \
+    git checkout "${args[release_branch]}" && \
     npm install && \
-    (if [ "${use_google_api_key}" = "true" ]; then \
+    (if [ "${args[use_google_api_key]}" = "true" ]; then \
         sed -i'' -e 's/export const googleSdkEnabled = false;/export const googleSdkEnabled = true;/' src/config.tsx; \
-    fi)
+    fi) && \
+    npm run build
 
-WORKDIR /usr/app/frontend
-RUN npm run build
-
-FROM nginx:$nginx_version
-COPY $sitemap_path /usr/share/nginx/html/sitemap.xml
-COPY $robots_path /usr/share/nginx/html/robots.txt
+FROM nginx:${args[nginx_version]}
+COPY ${args[sitemap_path]} /usr/share/nginx/html/sitemap.xml
+COPY ${args[robots_path]} /usr/share/nginx/html/robots.txt
 COPY --from=build /usr/app/frontend/dist /usr/share/nginx/html
-COPY $nginx_conf_path /usr/share/nginx/nginx.conf
-COPY $mime_types_path /usr/share/nginx/mime.types
+COPY ${args[nginx_conf_path]} /etc/nginx/nginx.conf
+COPY ${args[mime_types_path]} /etc/nginx/mime.types
 
-# Create logs directory
 RUN mkdir -p /usr/share/nginx/logs && \
     touch /usr/share/nginx/logs/error.log && \
-    touch /usr/share/nginx/logs/access.log
-
-RUN mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
+    touch /usr/share/nginx/logs/access.log && \
+    mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
     chmod -R 777 /usr/share/nginx/html/.well-known
 
-EXPOSE ${exposed_nginx_port}
+EXPOSE ${args[exposed_nginx_port]}
 CMD ["nginx", "-g", "daemon off;"]
 EOF
 
-  print_message "Successfully configured Dockerfile at ${frontend_dockerfile}"
+  print_message "Successfully configured Dockerfile at ${args[frontend_dockerfile]}"
 }
