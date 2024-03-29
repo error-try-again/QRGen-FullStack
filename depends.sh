@@ -9,7 +9,7 @@ set -euo pipefail
 # Arguments:
 #   None
 #######################################
-function install_packages() {
+install_packages() {
   echo "Removing conflicting packages..."
   local remove_packages=(docker.io docker-doc docker-compose podman-docker containerd runc)
   for package in "${remove_packages[@]}"; do
@@ -36,7 +36,7 @@ $(. /etc/os-release && echo "${VERSION_CODENAME}") stable" | sudo tee /etc/apt/s
 # Arguments:
 #   None
 #######################################
-function uninstall_packages() {
+uninstall_packages() {
   echo "Attempting to uninstall packages..."
   local packages=(docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose)
   for package in "${packages[@]}"; do
@@ -60,7 +60,7 @@ function uninstall_packages() {
 # Arguments:
 #   1 - Port number to adjust
 #######################################
-function adjust_sysctl_for_port() {
+adjust_sysctl_for_port() {
   local port="$1"
   local setting="net.ipv4.ip_unprivileged_port_start=${port}"
 
@@ -78,7 +78,7 @@ function adjust_sysctl_for_port() {
 # Arguments:
 #   None
 #######################################
-function setup_user_with_prompt() {
+setup_user_with_prompt() {
   if [[ -z ${user_name} ]]; then
     echo "Error: user_name is not set."
     return 1
@@ -92,7 +92,7 @@ function setup_user_with_prompt() {
 }
 
 # Unified User Setup Function
-function setup_user() {
+setup_user() {
   echo "Setting up ${user_name} user..."
   if id "${user_name}" &>/dev/null; then
     local user_choice
@@ -124,7 +124,7 @@ function setup_user() {
 # Arguments:
 #   None
 #######################################
-function remove_user() {
+remove_user() {
   echo "Removing ${user_name} user..."
   if pgrep -u "${user_name}" >/dev/null; then
     echo "There are active processes running under the ${user_name} user."
@@ -142,6 +142,13 @@ function remove_user() {
   sudo deluser --remove-home "${user_name}"
 }
 
+
+# 
+docker_preflight() {
+ systemctl disable --now docker.service docker.socket
+}
+
+
 #######################################
 # Sets up NVM and Node.js for the specified user.
 # Globals:
@@ -151,7 +158,7 @@ function remove_user() {
 # Arguments:
 #   None
 #######################################
-function setup_nvm_node() {
+setup_nvm_node() {
   echo "Setting up NVM and Node.js..."
 
   if id "${user_name}" &>/dev/null; then
@@ -181,7 +188,7 @@ EOF
 # Arguments:
 #   None
 #######################################
-function remove_nvm_node() {
+remove_nvm_node() {
   echo "Removing NVM and Node.js..."
   if id "${user_name}" &>/dev/null; then
     local nvm_dir="/home/${user_name}/.nvm"
@@ -210,7 +217,7 @@ function remove_nvm_node() {
 # Arguments:
 #   None
 #######################################
-function installation_menu() {
+installation_menu() {
   local choice
   echo "Choose an action:"
   echo "1) Full Installation (All)"
@@ -228,6 +235,7 @@ function installation_menu() {
   setup_user
   install_packages
   setup_nvm_node
+  docker_preflight
   ;;
 2) setup_user ;;
 3) install_packages ;;
@@ -248,7 +256,7 @@ esac
 }
 
 #######################################
-# Main function to control the script flow.
+# Main to control the script flow.
 # Globals:
 #   LANG
 #   LC_ALL
@@ -260,7 +268,7 @@ esac
 #   0 - Script name
 #   1 - User name (optional)
 #######################################
-function main() {
+main() {
   # Check for necessary privileges
   if [[ ${EUID} -ne 0 ]]; then
     echo "This script must be run as root. Please use sudo."
