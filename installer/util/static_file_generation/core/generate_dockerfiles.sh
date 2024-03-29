@@ -114,7 +114,7 @@ generate_backend_dockerfile() {
       [port]="${5}"
       [use_ssl_flag]="${6}"
       [google_maps_api_key]="${7}"
-      [backend_scheme]="${8}"
+      [origin]="${8}"
   )
 
   for arg_name in "${!args[@]}"; do
@@ -124,8 +124,10 @@ generate_backend_dockerfile() {
     validate_argument_exists "${args[$arg_name]}" "$arg_name"
   done
 
-  local origin
-  origin="origin"/"${release_branch}"
+
+  # Git origin for the release branch is the release branch itself, not the origin used for CORS requests. Naming is hard
+  local git_origin
+  git_origin="origin"/"${release_branch}"
 
   print_message "Configuring the Docker Backend at ${args[backend_dockerfile]}..."
   backup_existing_file "${args[backend_dockerfile]}"
@@ -141,7 +143,7 @@ RUN git init && \
     git submodule update --init --recursive && \
     cd backend && \
     git fetch --all && \
-    git reset --hard "${args[origin]}" && \
+    git reset --hard "${git_origin}" && \
     git checkout "${args[release_branch]}" && \
     npm install
 
