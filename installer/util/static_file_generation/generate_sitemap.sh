@@ -11,7 +11,7 @@ set -euo pipefail
 generate_sitemap() {
   print_message "Configuring the site map..."
   local origin_url="${1}"
-  local sitemap_xml="${2}"
+  local sitemap_path="${2}"
 
   local date regularity priority
 
@@ -19,7 +19,7 @@ generate_sitemap() {
   regularity="weekly"
   priority="0.8"
 
-  cat << EOF > "${sitemap_xml}"
+  cat << EOF > "${sitemap_path}"
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
    <url>
