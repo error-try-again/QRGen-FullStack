@@ -323,7 +323,6 @@ generate_nginx_configuration() {
   local use_self_signed_certs="${11}"
   local use_tls_12_flag="${12}"
   local use_tls_13_flag="${13}"
-  local -n service_to_standard_config_map="${14}"
 
   if [[ ! -f ${nginx_configuration_file:-} ]]; then
     echo "Creating NGINX configuration file at ${nginx_configuration_file}"

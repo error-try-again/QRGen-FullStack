@@ -9,7 +9,6 @@
       "ports": ["3001:3001"],
       "networks": ["qrgen"],
       "restart": "on-failure",
-
       "locations": [
         "/qr/"
       ],

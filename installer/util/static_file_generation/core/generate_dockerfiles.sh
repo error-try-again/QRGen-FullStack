@@ -139,15 +139,17 @@ FROM node:${args[node_version]}
 
 WORKDIR /usr/app
 
-# Chain git commands for efficiency and clarity
 RUN git init && \
     git submodule add --force "${args[backend_submodule_url]}" backend && \
-    git submodule update --init --recursive && \
-    cd backend && \
-    git fetch --all && \
+    git submodule update --init --recursive
+
+WORKDIR /usr/app/backend
+
+RUN git fetch --all && \
     git reset --hard "${git_origin}" && \
-    git checkout "${args[release_branch]}" && \
-    npm install
+    git checkout "${args[release_branch]}"
+
+RUN yarn install
 
 ENV ORIGIN=${args[origin]}
 ENV USE_SSL=${args[use_ssl_flag]}
@@ -215,26 +217,22 @@ FROM node:${args[node_version]} as build
 WORKDIR /usr/app
 
 RUN git init && \
-    echo "Adding submodule..." && \
     (if [ ! -d "frontend" ]; then \
         git submodule add --force "${args[frontend_submodule_url]}" frontend; \
     fi) && \
-    echo "Updating submodule..." && \
     git submodule update --init --recursive
 
 WORKDIR /usr/app/frontend
 
 RUN git fetch --all && \
-    echo "Resetting hard to specified branch..." && \
     git reset --hard "origin/${args[release_branch]}" && \
-    git checkout "${args[release_branch]}" && \
-    echo "Installing dependencies..." && \
-    npm install && \
-    (if [ "${args[use_google_api_key]}" = "true" ]; then \
-        echo "Setting Google SDK enabled..." && \
+    git checkout "${args[release_branch]}"
+
+RUN yarn install
+
+RUN (if [ "${args[use_google_api_key]}" = "true" ]; then \
         sed -i'' -e 's/export const googleSdkEnabled = false;/export const googleSdkEnabled = true;/' src/config.tsx; \
-    fi) && \
-    echo "Building project..."
+    fi)
 
 # Run npm build in the correct directory
 RUN npm run build

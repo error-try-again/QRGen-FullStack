@@ -63,9 +63,9 @@ setup() {
   initialize_rootless_docker
 
   # TODO: patch this to make it effective - supposed to ensure the port is available for each service
-  ensure_port_is_available \
-  "${exposed_nginx_port}" \
-  "auto"
+#  ensure_port_is_available \
+#  "${exposed_nginx_port}" \
+#  "auto"
 
   # Specify the installation procedure
   handle_auto_install \
