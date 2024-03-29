@@ -332,8 +332,6 @@ generate_nginx_configuration() {
 
   backup_existing_file "${nginx_configuration_file}"
 
-  echo "${service_to_standard_config_map[@]}"
-
   {
     local unique_endpoint="/qr/"
     local has_unique_endpoint=false
