@@ -150,7 +150,7 @@ configure_acme_location_block() {
   if [[ ${use_letsencrypt} == "true"   ]]; then
     echo_indented 8 "location /.well-known/acme-challenge/ {"
     echo_indented 12 "allow all;"
-    echo_indented 12 "root /etc/nginx/html;"
+    echo_indented 12 "root /usr/share/nginx/html;"
     echo_indented 8 "}"
   fi
 
@@ -238,13 +238,13 @@ configure_additional_ssl_settings() {
 generate_default_location_block() {
   # Location block for static content
   echo_indented 8 "location / {"
-  echo_indented 12 "root /etc/nginx/html;"
+  echo_indented 12 "root /usr/share/nginx/html;"
   echo_indented 12 "index index.html index.htm;"
   echo_indented 12 'try_files $uri $uri/ /index.html;'
   echo_indented 12 "expires 1y;"
   echo_indented 12 "add_header Cache-Control public;"
-  echo_indented 12 "access_log /etc/nginx/logs/access.log;"
-  echo_indented 12 "error_log /etc/nginx/logs/error.log warn;"
+  echo_indented 12 "access_log /usr/share/nginx/logs/access.log;"
+  echo_indented 12 "error_log /usr/share/nginx/logs/error.log warn;"
   echo_indented 8 "}"
 }
 
@@ -255,11 +255,11 @@ generate_default_location_block() {
 #######################################
 generate_default_file_location() {
   echo_indented 8 "location /robots.txt {"
-  echo_indented 12 "root /etc/nginx/html;"
+  echo_indented 12 "root /usr/share/nginx/html;"
   echo_indented 8 "}"
 
   echo_indented 8 "location /sitemap.xml {"
-  echo_indented 12 "root /etc/nginx/html;"
+  echo_indented 12 "root /usr/share/nginx/html;"
   echo_indented 8 "}"
 }
 
@@ -344,7 +344,7 @@ generate_nginx_configuration() {
     echo ""
     echo "http {"
 
-    echo_indented 4 "include /etc/nginx/mime.types;"
+    echo_indented 4 "include /usr/share/nginx/mime.types;"
     echo_indented 4 "default_type application/octet-stream;"
 
     get_gzip "${use_gzip_flag:-false}"

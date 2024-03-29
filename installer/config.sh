@@ -166,7 +166,7 @@ source_global_configurations() {
   export backend_directory="${project_root_dir}/backend"
   export frontend_dir="${project_root_dir}/frontend"
   export certbot_dir="${project_root_dir}/certbot"
-  export internal_webroot_dir="/etc/nginx/html"
+  export internal_webroot_dir="/usr/share/nginx/html"
 
   # ------------------
   # File Configurations

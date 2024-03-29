@@ -13,8 +13,8 @@
         "/qr/"
       ],
       "volumes": {
-        "./nginx": "/etc/nginx",
-        "./nginx/logs": "/etc/nginx/logs",
+        "./nginx": "/usr/share/nginx",
+        "./nginx/logs": "/usr/share/nginx/logs",
         "./certs/live/qr-gen.net": "/etc/ssl/certs/"
       }
     },
@@ -28,8 +28,8 @@
         "443:443"
       ],
       "volumes": {
-        "./nginx": "/etc/nginx",
-        "./nginx/logs": "/etc/nginx/logs",
+        "./nginx": "/usr/share/nginx",
+        "./nginx/logs": "/usr/share/nginx/logs",
         "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
       },
@@ -47,7 +47,7 @@
       "dockerfile": "./certbot/Dockerfile",
       "container_name": "certbot",
       "entrypoint": "/bin/sh",
-      "command": "certonly --webroot --webroot-path=/etc/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --staging --dry-run --overwrite-cert-dirs --domains qr-gen.net",
+      "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --staging --dry-run --overwrite-cert-dirs --domains qr-gen.net",
       "ports": [
         "80:80"
       ],
@@ -55,7 +55,7 @@
         "./certbot/logs": "/var/log/letsencrypt",
         "./certs": "/etc/letsencrypt/live/",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
-        "./nginx/html": "/etc/nginx/html"
+        "./nginx/html": "/usr/share/nginx/html"
       },
       "networks": [
         "qrgen"
@@ -165,9 +165,8 @@
           ],
           "restart": "on-failure",
           "volumes": {
-            "./nginx": "/etc/nginx",
-            "./nginx/ssl": "/etc/nginx/ssl",
-            "./nginx/logs": "/etc/nginx/logs",
+            "./nginx": "/usr/share/nginx",
+            "./nginx/logs": "/usr/share/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost"
           }
         },
@@ -182,9 +181,8 @@
             "express_service"
           ],
           "volumes": {
-            "./nginx": "/etc/nginx",
-            "./nginx/ssl": "/etc/nginx/ssl",
-            "./nginx/logs": "/etc/nginx/logs",
+            "./nginx": "/usr/share/nginx",
+            "./nginx/logs": "/usr/share/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
             "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
           }
@@ -238,9 +236,8 @@
             "express_service"
           ],
           "volumes": {
-            "./nginx": "/etc/nginx",
-            "./nginx/ssl": "/etc/nginx/ssl",
-            "./nginx/logs": "/etc/nginx/logs",
+            "./nginx": "/usr/share/nginx",
+            "./nginx/logs": "/usr/share/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
             "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
           }

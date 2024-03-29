@@ -178,19 +178,19 @@ WORKDIR /usr/app/frontend
 RUN npm run build
 
 FROM nginx:$nginx_version
-COPY $sitemap_path /etc/nginx/html/sitemap.xml
-COPY $robots_path /etc/nginx/html/robots.txt
-COPY --from=build /usr/app/frontend/dist /etc/nginx/html
-COPY $nginx_conf_path /etc/nginx/nginx.conf
-COPY $mime_types_path /etc/nginx/mime.types
+COPY $sitemap_path /usr/share/nginx/html/sitemap.xml
+COPY $robots_path /usr/share/nginx/html/robots.txt
+COPY --from=build /usr/app/frontend/dist /usr/share/nginx/html
+COPY $nginx_conf_path /usr/share/nginx/nginx.conf
+COPY $mime_types_path /usr/share/nginx/mime.types
 
 # Create logs directory
-RUN mkdir -p /etc/nginx/logs && \
-    touch /etc/nginx/logs/error.log && \
-    touch /etc/nginx/logs/access.log
+RUN mkdir -p /usr/share/nginx/logs && \
+    touch /usr/share/nginx/logs/error.log && \
+    touch /usr/share/nginx/logs/access.log
 
-RUN mkdir -p /etc/nginx/html/.well-known/acme-challenge && \
-    chmod -R 777 /etc/nginx/html/.well-known
+RUN mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
+    chmod -R 777 /usr/share/nginx/html/.well-known
 
 EXPOSE ${exposed_nginx_port}
 CMD ["nginx", "-g", "daemon off;"]
