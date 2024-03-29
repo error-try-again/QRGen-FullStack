@@ -14,7 +14,7 @@
         "/qr/"
       ],
       "volumes": {
-        "./nginx": "/usr/share/nginx",
+
         "./nginx/logs": "/usr/share/nginx/logs",
         "./certs/live/qr-gen.net": "/etc/ssl/certs/"
       }
@@ -29,11 +29,10 @@
         "443:443"
       ],
       "volumes": {
-        "./nginx": "/usr/share/nginx",
+
         "./nginx/logs": "/usr/share/nginx/logs",
         "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
-        "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
-        "./nginx/html": "/usr/share/nginx/html"
+        "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
       },
       "networks": [
         "qrgen"
@@ -122,8 +121,8 @@
         "origin_port": "8080",
         "origin_url": "https://void.qr-gen.net",
         "productions_certs_flag": "--staging",
-        "regenerate_diffie_hellman_parameters": false,
-        "regenerate_ssl_certificates": false,
+        "regenerate_diffie_hellman_parameters": true,
+        "regenerate_ssl_certificates": true,
         "release_branch": "full-release",
         "rsa_key_size_flag": "--rsa-key-size 4096",
         "terms_of_service_flag": "--agree-tos",
@@ -167,7 +166,7 @@
           ],
           "restart": "on-failure",
           "volumes": {
-            "./nginx": "/usr/share/nginx",
+
             "./nginx/logs": "/usr/share/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost"
           }
@@ -183,7 +182,7 @@
             "express_service"
           ],
           "volumes": {
-            "./nginx": "/usr/share/nginx",
+
             "./nginx/logs": "/usr/share/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
             "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
@@ -238,7 +237,7 @@
             "express_service"
           ],
           "volumes": {
-            "./nginx": "/usr/share/nginx",
+
             "./nginx/logs": "/usr/share/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
             "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
@@ -251,8 +250,8 @@
         "diffie_hellman_parameter_bit_size": 2048,
         "disable_docker_build_caching": false,
         "google_maps_api_key": "",
-        "regenerate_diffie_hellman_parameters": false,
-        "regenerate_ssl_certificates": false,
+        "regenerate_diffie_hellman_parameters": true,
+        "regenerate_ssl_certificates": true,
         "release_branch": "full-release",
         "use_google_api_key": true,
         "use_gzip_flag": true,

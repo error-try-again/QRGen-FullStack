@@ -40,6 +40,7 @@ build_and_run_docker() {
   # Handle certificates
   handle_certs
 
+  print_message "Building and running docker services for ${release_branch} from $(pwd)"
   docker compose build --no-cache && docker compose up -d --force-recreate --renew-anon-volumes
 
   # Dump logs

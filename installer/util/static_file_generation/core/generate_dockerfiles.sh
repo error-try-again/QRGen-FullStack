@@ -25,6 +25,11 @@ generate_certbot_dockerfile() {
 
   local dockerfile_template="FROM ${base_image}
 
+WORKDIR ${workdir}
+VOLUME ${volumes}
+EXPOSE ${expose}
+ENTRYPOINT ${entrypoint}
+
 RUN mkdir -p src \\
  && wget -O certbot-master.zip ${certbot_repo} \\
  && unzip certbot-master.zip \\
@@ -59,10 +64,7 @@ RUN apk add --no-cache --virtual .build-deps \\
     && apk del .build-deps \\
     && rm -rf \"${HOME}\"/.cargo
 
-WORKDIR ${workdir}
-VOLUME ${volumes}
-EXPOSE ${expose}
-ENTRYPOINT ${entrypoint}
+
 "
 
   backup_existing_file "${certbot_dockerfile}"
@@ -218,10 +220,11 @@ RUN git init && \
         git submodule add --force "${args[frontend_submodule_url]}" frontend; \
     fi) && \
     echo "Updating submodule..." && \
-    git submodule update --init --recursive && \
-    cd frontend && \
-    echo "Fetching all branches..." && \
-    git fetch --all && \
+    git submodule update --init --recursive
+
+WORKDIR /usr/app/frontend
+
+RUN git fetch --all && \
     echo "Resetting hard to specified branch..." && \
     git reset --hard "origin/${args[release_branch]}" && \
     git checkout "${args[release_branch]}" && \
@@ -233,14 +236,19 @@ RUN git init && \
     fi) && \
     echo "Building project..."
 
-RUN npm run build && ls -la /usr/app/frontend/dist
+# Run npm build in the correct directory
+RUN npm run build
+
+# Verify the dist directory
+RUN ls -la dist
 
 FROM nginx:${args[nginx_version]}
+
 COPY ${args[sitemap_path]} /usr/share/nginx/html/sitemap.xml
 COPY ${args[robots_path]} /usr/share/nginx/html/robots.txt
-COPY --from=build /usr/app/frontend/dist /usr/share/nginx/html
 COPY ${args[nginx_conf_path]} /usr/share/nginx/nginx.conf
 COPY ${args[mime_types_path]} /usr/share/nginx/mime.types
+COPY --from=build /usr/app/frontend/dist /usr/share/nginx/html
 
 RUN mkdir -p /usr/share/nginx/logs && \
     touch /usr/share/nginx/logs/error.log && \
