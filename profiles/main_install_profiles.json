@@ -32,7 +32,8 @@
         "./nginx": "/usr/share/nginx",
         "./nginx/logs": "/usr/share/nginx/logs",
         "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
-        "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
+        "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
+        "./nginx/html": "/usr/share/nginx/html"
       },
       "networks": [
         "qrgen"
@@ -56,7 +57,7 @@
         "./certbot/logs": "/var/log/letsencrypt",
         "./certs": "/etc/letsencrypt/live/",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
-        "./nginx/html": "/usr/share/nginx/html"
+        "./nginx/html/.well-known": "/usr/share/nginx/html/.well-known"
       },
       "networks": [
         "qrgen"

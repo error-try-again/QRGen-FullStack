@@ -231,14 +231,15 @@ FROM nginx:${args[nginx_version]}
 COPY ${args[sitemap_path]} /usr/share/nginx/html/sitemap.xml
 COPY ${args[robots_path]} /usr/share/nginx/html/robots.txt
 COPY --from=build /usr/app/frontend/dist /usr/share/nginx/html
-COPY ${args[nginx_conf_path]} /etc/nginx/nginx.conf
-COPY ${args[mime_types_path]} /etc/nginx/mime.types
+COPY ${args[nginx_conf_path]} /usr/share/nginx/nginx.conf
+COPY ${args[mime_types_path]} /usr/share/nginx/mime.types
 
 RUN mkdir -p /usr/share/nginx/logs && \
     touch /usr/share/nginx/logs/error.log && \
-    touch /usr/share/nginx/logs/access.log && \
-    mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
-    chmod -R 777 /usr/share/nginx/html/.well-known
+    touch /usr/share/nginx/logs/access.log &&
+
+RUN mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
+    chmod -R 755 /usr/share/nginx/html/.well-known
 
 EXPOSE ${args[exposed_nginx_port]}
 CMD ["nginx", "-g", "daemon off;"]
