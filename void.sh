@@ -36,7 +36,6 @@ source_project_files() {
   source installer/util/ops/initialize_and_dispatch_command.sh
   source installer/util/helpers/backup_existing_file.sh
   source installer/util/helpers/backup_and_replace_file.sh
-  source installer/util/helpers/echo_indented.sh
   source installer/util/helpers/insert_into_bashrc.sh
   source installer/util/ops/update_project.sh
   source installer/util/profile/profile_builder.sh
