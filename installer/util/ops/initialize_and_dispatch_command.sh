@@ -94,7 +94,7 @@ options_parser() {
         ;;
       --dump-logs)
         # Dump logs and terminate script execution.
-        dump_compose_logs "${docker_compose_file}" "${project_logs_dir}"
+        dump_logs "${docker_compose_file}" "${project_logs_dir}"
         ;;
       --update-project)
         # Update project and terminate script execution.

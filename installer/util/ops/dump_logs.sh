@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-dump_compose_logs() {
+dump_logs() {
   local docker_compose_file="${1}"
   local output_dir="${2}"
   if ! command -v docker compose &> /dev/null; then
@@ -14,7 +14,8 @@ dump_compose_logs() {
     exit 1
   fi
   mkdir -p "${output_dir}"
-  local datetime=$(date +"%Y-%m-%d %H:%M:%S")
+  local datetime
+  datetime=$(date +"%Y-%m-%d %H:%M:%S")
   local log_file="${output_dir}/docker-compose-logs-${datetime}.log"
   docker compose logs | tee "${log_file}"
   print_message "Logs saved to ${log_file}"

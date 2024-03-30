@@ -29,6 +29,7 @@
       "volumes": {
         "./nginx/logs": "/usr/share/nginx/logs",
         "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
+        "./nginx/html/.well-known": "/usr/share/nginx/html/.well-known",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
       },
       "networks": [

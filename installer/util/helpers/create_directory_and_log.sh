@@ -7,7 +7,7 @@ set -euo pipefail
 # Arguments:
 #   1
 #######################################
-create_directory_and_log() {
+create_directory_if_not_exist() {
   local directory="$1"
   if [[ ! -d ${directory} ]]; then
     mkdir -p "${directory}"

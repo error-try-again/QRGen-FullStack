@@ -44,7 +44,7 @@ build_and_run_docker() {
   docker compose build --no-cache && docker compose up -d --force-recreate --renew-anon-volumes
 
   # Dump logs
-  dump_compose_logs "${docker_compose_file}" "${project_logs_dir}"
+  dump_logs "${docker_compose_file}" "${project_logs_dir}"
 }
 
 #######################################

@@ -19,6 +19,6 @@ setup_directory_structure() {
   print_multiple_messages "Staging project directories..."
   local directory
   for directory in "${frontend_dir}" "${backend_directory}" "${certbot_dir}" "${project_logs_dir}"; do
-    create_directory_and_log "${directory}"
+    create_directory_if_not_exist "${directory}"
   done
 }

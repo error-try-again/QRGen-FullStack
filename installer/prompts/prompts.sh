@@ -94,7 +94,7 @@ prompt_user_selection_switch() {
   case $1 in
     "Run Setup") setup ;;
     "Uninstall") uninstall ;;
-    "Dump logs") dump_compose_logs "${docker_compose_file}" "${project_logs_dir}" ;;
+    "Dump logs") dump_logs "${docker_compose_file}" "${project_logs_dir}" ;;
     "Update Project") update_project ;;
     "Stop Project Docker Containers") stop_containers ;;
     "Purge Current Builds - Dangerous") purge ;;
