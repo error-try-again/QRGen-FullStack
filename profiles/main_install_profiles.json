@@ -24,6 +24,7 @@
       "context": ".",
       "dockerfile": "./frontend/Dockerfile",
       "ports": [
+        "80:80",
         "443:443"
       ],
       "volumes": {
@@ -47,9 +48,7 @@
       "container_name": "certbot",
       "entrypoint": "/bin/sh",
       "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --staging --dry-run --overwrite-cert-dirs --domains qr-gen.net",
-      "ports": [
-        "80:80"
-      ],
+      "ports": [],
       "volumes": {
         "./certbot/logs": "/var/log/letsencrypt",
         "./certs": "/etc/letsencrypt/live/",

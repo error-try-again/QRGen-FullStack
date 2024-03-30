@@ -348,6 +348,7 @@ generate_nginx_configuration() {
     get_gzip "${use_gzip_flag:-false}"
     configure_ssl_settings "${diffie_hellman_parameters_file:-}" "${use_letsencrypt:-false}" "${use_ocsp_stapling:-false}" "${use_self_signed_certs:-false}"
 
+
     local service_name
     for service_name in "${!service_to_standard_config_map[@]}"; do
 
@@ -362,8 +363,18 @@ generate_nginx_configuration() {
       # Extract service-specific configurations with the exception of globals flags, e.g. backend_scheme
       domains=$(echo "$service_config" | jq -r 'if .domains then .domains[] else empty end')
 
+      # Retrieve the SSL port for the service
       nginx_ssl_port=$(echo "${service_config}" | jq -r '.ports[] | select(test("443")) | split(":")[0]')
+
+      # Retrieve the ports for the service
       mapfile -t ports < <(echo "${service_config}" | jq -r '.ports[]')
+
+      # Skip inserting server block if no ports are found for the service
+      if [[ ${#ports[@]} -eq 0 ]]; then
+        continue
+      fi
+
+      # Extract the backend port, host port, and container port from the service configuration - A hack
       backend_port=$(echo "${ports[0]}" | cut -d ":" -f2)
       host_port=$(echo "${ports}" | cut -d ":" -f1)
       container_port=$(echo "${ports}" | cut -d ":" -f2)
