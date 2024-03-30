@@ -23,52 +23,55 @@ generate_certbot_dockerfile() {
   local cargo_net_git_fetch_with_cli="true"
   local certbot_repo=https://github.com/error-try-again/certbot/archive/refs/heads/master.zip
 
-  local dockerfile_template="FROM ${base_image}
+  backup_existing_file "${certbot_dockerfile}"
+
+cat << EOF > "${certbot_dockerfile}"
+FROM ${base_image}
 
 WORKDIR ${workdir}
 VOLUME ${volumes}
 EXPOSE ${expose}
 ENTRYPOINT ${entrypoint}
 
-RUN mkdir -p src \\
- && wget -O certbot-master.zip ${certbot_repo} \\
- && unzip certbot-master.zip \\
- && cp certbot-master/CHANGELOG.md certbot-master/README.rst src/ \\
- && cp -r certbot-master/tools tools \\
- && cp -r certbot-master/acme src/acme \\
- && cp -r certbot-master/certbot src/certbot \\
- && rm -rf certbot-master.tar.gz certbot-master
+RUN apk update && apk add --no-cache wget unzip
 
-RUN apk add --no-cache --virtual .certbot-deps \\
-        libffi \\
-        libssl1.1 \\
-        openssl \\
-        ca-certificates \\
+RUN mkdir -p src
+
+RUN wget -O certbot-master.zip ${certbot_repo} \
+ && unzip certbot-master.zip \
+ && cp certbot-master/CHANGELOG.md certbot-master/README.rst src/ \
+ && cp -r certbot-master/tools tools \
+ && cp -r certbot-master/acme src/acme \
+ && cp -r certbot-master/certbot src/certbot \
+ && rm -rf certbot-master.zip certbot-master
+
+# Additional dependencies may be required for certbot
+RUN apk add --no-cache --virtual .certbot-deps \
+        libffi \
+        libssl1.1 \
+        openssl \
+        ca-certificates \
         binutils
 
 ARG CARGO_NET_GIT_FETCH_WITH_CLI=${cargo_net_git_fetch_with_cli}
 
-RUN apk add --no-cache --virtual .build-deps \\
-        gcc \\
-        linux-headers \\
-        openssl-dev \\
-        musl-dev \\
-        libffi-dev \\
-        python3-dev \\
-        cargo \\
-        git \\
-        pkgconfig \\
-    && python tools/pip_install.py --no-cache-dir \\
-            --editable src/acme \\
-            --editable src/certbot \\
-    && apk del .build-deps \\
-    && rm -rf \"${HOME}\"/.cargo
+# Assuming you need to compile Python dependencies with native extensions
+RUN apk add --no-cache --virtual .build-deps \
+        gcc \
+        linux-headers \
+        openssl-dev \
+        musl-dev \
+        libffi-dev \
+        python3-dev \
+        cargo \
+        git \
+        pkgconfig \
+ && python3 -m pip install --upgrade pip \
+ && pip install --no-cache-dir --editable ./src/acme --editable ./src/certbot \
+ && apk del .build-deps \
+ && rm -rf /var/cache/apk/* /root/.cache
+EOF
 
-
-"
-
-  backup_existing_file "${certbot_dockerfile}"
-  echo -e "${dockerfile_template}" > "${certbot_dockerfile}"
   print_multiple_messages "Dockerfile configured successfully at ${certbot_dockerfile}"
 }
 
@@ -205,7 +208,7 @@ generate_frontend_dockerfile() {
   )
 
   for arg_name in "${!args[@]}"; do
-    validate_argument_exists "${args[$arg_name]}" "$arg_name"
+    validate_argument_exists "${args[$arg_name]}" "${arg_name}"
   done
 
   print_message "Configuring the frontend Docker environment..."
@@ -245,18 +248,20 @@ FROM nginx:${args[nginx_version]}
 # Install curl for debugging
 RUN apk add --no-cache curl
 
-COPY ${args[sitemap_path]} /etc/nginx/html/sitemap.xml
-COPY ${args[robots_path]} /etc/nginx/html/html/robots.txt
+COPY ${args[sitemap_path]} /usr/share/nginx/html/sitemap.xml
+COPY ${args[robots_path]} /usr/share/nginx/html/robots.txt
+
 COPY ${args[nginx_conf_path]} /etc/nginx/nginx.conf
 COPY ${args[mime_types_path]} /etc/nginx/mime.types
-COPY --from=build /usr/app/frontend/dist /etc/nginx/html
+
+COPY --from=build /usr/app/frontend/dist /usr/share/nginx/html
 
 RUN mkdir -p /usr/share/nginx/logs && \
     touch /usr/share/nginx/logs/error.log && \
     touch /usr/share/nginx/logs/access.log
 
-RUN mkdir -p /etc/nginx/html/.well-known/acme-challenge && \
-    chmod -R 755 /etc/nginx/html/.well-known
+RUN mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
+    chmod -R 755 /usr/share/nginx/html/.well-known
 
 EXPOSE ${args[exposed_nginx_port]}
 CMD ["nginx", "-g", "daemon off;"]

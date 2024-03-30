@@ -148,9 +148,9 @@ configure_acme_location_block() {
   local use_letsencrypt="${1}"
 
   if [[ ${use_letsencrypt} == "true"   ]]; then
-    echo_indented 8 "location /.well-known/acme-challenge/ {"
+    echo_indented 8 "location ^~ /.well-known/acme-challenge/ {"
     echo_indented 12 "allow all;"
-    echo_indented 12 "root /etc/nginx/html;"
+    echo_indented 12 "root /usr/share/nginx/html;"
     echo_indented 8 "}"
   fi
 
@@ -255,11 +255,11 @@ generate_default_location_block() {
 #######################################
 generate_default_file_location() {
   echo_indented 8 "location /robots.txt {"
-  echo_indented 12 "root /etc/nginx/html;"
+  echo_indented 12 "root /usr/share/nginx/html;"
   echo_indented 8 "}"
 
   echo_indented 8 "location /sitemap.xml {"
-  echo_indented 12 "root /etc/nginx/html;"
+  echo_indented 12 "root /usr/share/nginx/html;"
   echo_indented 8 "}"
 }
 

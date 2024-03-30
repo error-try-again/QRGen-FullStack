@@ -13,7 +13,6 @@
         "/qr/"
       ],
       "volumes": {
-
         "./nginx/logs": "/usr/share/nginx/logs",
         "./certs/live/qr-gen.net": "/etc/ssl/certs/"
       }
@@ -28,7 +27,6 @@
         "443:443"
       ],
       "volumes": {
-
         "./nginx/logs": "/usr/share/nginx/logs",
         "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
