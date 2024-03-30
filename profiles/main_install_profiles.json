@@ -51,9 +51,9 @@
       "ports": [],
       "volumes": {
         "./certbot/logs": "/var/log/letsencrypt",
-        "./certs/live": "/etc/letsencrypt/live/",
-        "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
-        "./nginx/html/.well-known/acme-challenge": "/usr/share/nginx/html/.well-known/acme-challenge"
+        "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
+        "./nginx/html/.well-known/acme-challenge": "/usr/share/nginx/html/.well-known/acme-challenge",
+        "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
       },
       "networks": [
         "qrgen"
