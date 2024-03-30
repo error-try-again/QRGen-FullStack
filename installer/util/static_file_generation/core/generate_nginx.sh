@@ -238,7 +238,7 @@ configure_additional_ssl_settings() {
 generate_default_location_block() {
   # Location block for static content
   echo_indented 8 "location / {"
-  echo_indented 12 "root /etc/nginx/html;"
+  echo_indented 12 "root /usr/share/nginx/html;"
   echo_indented 12 "index index.html index.htm;"
   echo_indented 12 'try_files $uri $uri/ /index.html;'
   echo_indented 12 "expires 1y;"

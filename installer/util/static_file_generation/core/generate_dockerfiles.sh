@@ -261,7 +261,7 @@ RUN mkdir -p /usr/share/nginx/logs && \
     touch /usr/share/nginx/logs/access.log
 
 RUN mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
-    chmod -R 755 /usr/share/nginx/html/.well-known
+    chmod -R 755 /usr/share/nginx/html
 
 EXPOSE ${args[exposed_nginx_port]}
 CMD ["nginx", "-g", "daemon off;"]
