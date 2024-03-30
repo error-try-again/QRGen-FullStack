@@ -47,7 +47,7 @@
       "dockerfile": "./certbot/Dockerfile",
       "container_name": "certbot",
       "entrypoint": "/bin/sh",
-      "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --staging --dry-run --overwrite-cert-dirs --domains qr-gen.net",
+      "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --overwrite-cert-dirs --domains qr-gen.net",
       "ports": [],
       "volumes": {
         "./certbot/logs": "/var/log/letsencrypt",
@@ -89,6 +89,76 @@
         },
         "certbot": {
           "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --dry-run --overwrite-cert-dirs --domains qr-gen.net"
+        }
+      },
+      "networks": {
+        "qrgen": {
+          "driver": "bridge"
+        }
+      },
+      "volumes": {
+        "shared": {
+          "driver_opts": {
+            "o": "addr=host.docker.internal,nolock,soft,rw,override_option"
+          }
+        }
+      },
+      "flags": {
+        "auto_install_flag": true,
+        "backend_scheme": "https",
+        "build_certbot_image": true,
+        "diffie_hellman_parameter_bit_size": 2048,
+        "disable_docker_build_caching": true,
+        "docker_compose_file": "docker-compose.yml",
+        "email_flag": "--register-unsafely-without-email",
+        "google_maps_api_key": "",
+        "hsts_flag": "--hsts",
+        "letsencrypt_email": "skip",
+        "non_interactive_flag": "--non-interactive",
+        "no_eff_email_flag": "--no-eff-email",
+        "ocsp_stapling_flag": "--staple-ocsp",
+        "origin": "void.qr-gen.net",
+        "origin_port": "8080",
+        "origin_url": "https://void.qr-gen.net",
+        "productions_certs_flag": "--staging",
+        "regenerate_diffie_hellman_parameters": true,
+        "regenerate_ssl_certificates": true,
+        "release_branch": "full-release",
+        "rsa_key_size_flag": "--rsa-key-size 4096",
+        "terms_of_service_flag": "--agree-tos",
+        "use_auto_renew_ssl": true,
+        "use_custom_domain": true,
+        "use_dry_run": true,
+        "use_force_renew": true,
+        "use_google_api_key": true,
+        "use_gzip_flag": true,
+        "use_hsts": true,
+        "use_letsencrypt": true,
+        "use_must_staple": false,
+        "use_ocsp_stapling": true,
+        "use_overwrite_self_signed_certificates": true,
+        "use_production_ssl": true,
+        "use_ssl_flag": true,
+        "use_strict_file_permissions": false,
+        "use_tls_12_flag": false,
+        "use_tls_13_flag": true,
+        "use_uir": true
+      }
+    },
+    "production-dry-run": {
+      "services": [
+        "nginx",
+        "express_service",
+        "certbot"
+      ],
+      "overrides": {
+        "express_service": {
+          "domains": [
+            "qr-gen.net"
+          ]
+        },
+        "certbot": {
+          "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --staging --dry-run --overwrite-cert-dirs --domains qr-gen.net"
         }
       },
       "networks": {
