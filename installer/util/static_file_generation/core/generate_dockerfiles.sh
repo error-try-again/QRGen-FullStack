@@ -204,7 +204,6 @@ generate_frontend_dockerfile() {
        [nginx_conf_path]="${8}"
        [mime_types_path]="${9}"
        [nginx_version]="${10}"
-       [exposed_nginx_port]="${11}"
   )
 
   for arg_name in "${!args[@]}"; do
@@ -261,9 +260,8 @@ RUN mkdir -p /usr/share/nginx/logs && \
     touch /usr/share/nginx/logs/access.log
 
 RUN mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
-    chmod -R 755 /usr/share/nginx/html
+    chmod -R 777 /usr/share/nginx/html
 
-EXPOSE ${args[exposed_nginx_port]}
 CMD ["nginx", "-g", "daemon off;"]
 EOF
 

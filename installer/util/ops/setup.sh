@@ -122,8 +122,7 @@ setup() {
   "${robots_path}" \
   "${nginx_conf_path}" \
   "${mime_types_path}" \
-  "${nginx_version}" \
-  "${exposed_nginx_port}"
+  "${nginx_version}"
 
   [[ ${build_certbot_image} == "true" ]] && generate_certbot_dockerfile
 
@@ -147,7 +146,6 @@ setup() {
   "${use_self_signed_certs}" \
   "${use_tls_12_flag}" \
   "${use_tls_13_flag}" \
-  "${service_to_standard_config_map[@]}"
 
   # Pools the services and builds the images using docker compose
   build_and_run_docker \
