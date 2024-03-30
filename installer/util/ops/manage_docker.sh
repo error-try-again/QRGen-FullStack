@@ -94,8 +94,6 @@ build_and_run_docker() {
     exit 1
   fi
 
-  # Dump logs
-  dump_logs "${docker_compose_file}" "${project_logs_dir}"
 }
 
 #######################################

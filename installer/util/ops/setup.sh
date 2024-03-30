@@ -75,8 +75,7 @@ setup() {
   "${project_root_dir}"
 
   # TODO: fix the following hardcoding
-  local domain sitemap_path robots_path frontend_dotenv_file nginx_version
-  domain="localhost"
+  local sitemap_path robots_path frontend_dotenv_file nginx_version
   sitemap_path="frontend/sitemap.xml"
   robots_path="frontend/robots.txt"
   frontend_dotenv_file="frontend/.env"

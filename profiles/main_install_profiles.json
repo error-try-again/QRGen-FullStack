@@ -82,7 +82,7 @@
         "certbot"
       ],
       "overrides": {
-        "express_service": {
+        "nginx": {
           "domains": [
             "qr-gen.net"
           ]
@@ -142,7 +142,8 @@
         "use_strict_file_permissions": false,
         "use_tls_12_flag": false,
         "use_tls_13_flag": true,
-        "use_uir": true
+        "use_uir": true,
+        "domain": "qr-gen.net"
       }
     },
     "production-dry-run": {
@@ -152,7 +153,7 @@
         "certbot"
       ],
       "overrides": {
-        "express_service": {
+        "nginx": {
           "domains": [
             "qr-gen.net"
           ]
@@ -212,7 +213,8 @@
         "use_strict_file_permissions": false,
         "use_tls_12_flag": false,
         "use_tls_13_flag": true,
-        "use_uir": true
+        "use_uir": true,
+        "domain": "qr-gen.net"
       }
     },
     "staging": {
@@ -222,7 +224,7 @@
         "certbot"
       ],
       "overrides": {
-        "express_service": {
+        "nginx": {
           "domains": [
             "qr-gen.net"
           ]
@@ -282,7 +284,8 @@
         "use_strict_file_permissions": false,
         "use_tls_12_flag": false,
         "use_tls_13_flag": true,
-        "use_uir": true
+        "use_uir": true,
+        "domain": "qr-gen.net"
       }
     },
     "self_signed": {
@@ -337,7 +340,8 @@
         "use_self_signed_certs": true,
         "use_ssl_flag": true,
         "use_tls_12_flag": false,
-        "use_tls_13_flag": true
+        "use_tls_13_flag": true,
+        "domain": "localhost"
       }
     },
     "http": {
@@ -384,7 +388,8 @@
         "use_self_signed_certs": false,
         "use_ssl_flag": false,
         "use_tls_12_flag": false,
-        "use_tls_13_flag": false
+        "use_tls_13_flag": false,
+        "domain": "localhost"
       }
     }
   }
