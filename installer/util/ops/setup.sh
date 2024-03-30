@@ -109,7 +109,8 @@ setup() {
   "${express_port}" \
   "${use_ssl_flag}" \
   "${google_maps_api_key}" \
-  "${backend_scheme}://${domain}"
+  "${backend_scheme}://${domain}" \
+  "${domain}"
 
   # Generates the frontend Dockerfile responsible for building the frontend image
   generate_frontend_dockerfile \

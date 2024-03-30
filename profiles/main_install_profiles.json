@@ -14,7 +14,7 @@
       ],
       "volumes": {
         "./nginx/logs": "/usr/share/nginx/logs",
-        "./certs/live/qr-gen.net": "/etc/ssl/certs/"
+        "./certs": "/etc/letsencrypt"
       }
     },
     "nginx": {
@@ -29,7 +29,7 @@
       ],
       "volumes": {
         "./nginx/logs": "/usr/share/nginx/logs",
-        "./certs/": "/etc/letsencrypt",
+        "./certs": "/etc/letsencrypt",
         "./nginx/html/.well-known/acme-challenge": "/usr/share/nginx/html/.well-known/acme-challenge",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
       },
@@ -51,7 +51,7 @@
       "ports": [],
       "volumes": {
         "./certs/logs": "/var/log/letsencrypt",
-        "./certs/": "/etc/letsencrypt",
+        "./certs": "/etc/letsencrypt",
         "./nginx/html/.well-known/acme-challenge": "/usr/share/nginx/html/.well-known/acme-challenge",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
       },

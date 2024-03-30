@@ -120,6 +120,7 @@ generate_backend_dockerfile() {
       [use_ssl_flag]="${6}"
       [google_maps_api_key]="${7}"
       [origin]="${8}"
+      [domain]="${9}"
   )
 
   for arg_name in "${!args[@]}"; do
@@ -157,6 +158,7 @@ RUN yarn install
 ENV ORIGIN=${args[origin]}
 ENV USE_SSL=${args[use_ssl_flag]}
 ENV GOOGLE_MAPS_API_KEY=${args[google_maps_api_key]}
+ENV DOMAIN=${args[domain]}
 
 EXPOSE ${args[port]}
 
