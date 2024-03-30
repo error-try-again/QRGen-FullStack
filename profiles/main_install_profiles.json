@@ -51,7 +51,7 @@
       "ports": [],
       "volumes": {
         "./certbot/logs": "/var/log/letsencrypt",
-        "./certs": "/etc/letsencrypt/live/",
+        "./certs/live": "/etc/letsencrypt/live/",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
         "./nginx/html/.well-known/acme-challenge": "/usr/share/nginx/html/.well-known/acme-challenge"
       },
