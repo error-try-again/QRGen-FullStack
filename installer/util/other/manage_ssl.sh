@@ -40,9 +40,10 @@ generate_self_signed_certificates_for_services() {
   for service_name in "${!service_to_standard_config_map[@]}"; do
     local service_config="${service_to_standard_config_map[$service_name]}"
     local domains
-    mapfile -t domains < <(echo "$service_config" | jq -r '.domains[]')
 
-    # Handle null domains
+    mapfile -t domains < <(echo "$service_config" | jq -r 'if .domains then .domains[] else empty end')
+
+    # Skip if no domains are found
     if [[ ${#domains[@]} -eq 0 ]]; then
       continue
     fi
