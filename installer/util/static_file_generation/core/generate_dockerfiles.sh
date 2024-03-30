@@ -260,7 +260,7 @@ RUN mkdir -p /usr/share/nginx/logs && \
     touch /usr/share/nginx/logs/access.log
 
 RUN mkdir -p /usr/share/nginx/html/.well-known/acme-challenge && \
-    chmod -R 777 /usr/share/nginx/html
+    chmod 755 /usr/share/nginx/html/.well-known/acme-challenge
 
 CMD ["nginx", "-g", "daemon off;"]
 EOF
