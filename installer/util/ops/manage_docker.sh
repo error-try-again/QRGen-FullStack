@@ -12,24 +12,59 @@ pre_flight() {
 }
 
 #######################################
-# Builds and runs docker services
+# Waits for the Certbot container to complete its process.
+# Arguments: None
+# Returns:
+#   0 if Certbot successfully exited.
+#   1 if Certbot is in an unexpected state or timeout occurs.
+#######################################
+wait_for_certbot_completion() {
+  local attempt_count=0
+  local max_attempts=12
+  local sleep_duration=5
+  local certbot_container_id certbot_status
+
+  while ((attempt_count++ < max_attempts)); do
+    certbot_container_id=$(docker compose ps -q certbot)
+    if [[ -n $certbot_container_id ]]; then
+      certbot_status=$(docker inspect -f '{{.State.Status}}' "$certbot_container_id")
+      print_message "Attempt ${attempt_count}: Certbot container status - ${certbot_status}"
+
+      case $certbot_status in
+        "exited")
+          return 0 ;;
+        "running")
+          ;; # continue waiting
+        *)
+          print_message "Certbot container is in an unexpected state: ${certbot_status}"
+          return 1 ;;
+      esac
+    else
+      print_message "Certbot container is not running."
+      break
+    fi
+    sleep $sleep_duration
+  done
+
+  if ((attempt_count > max_attempts)); then
+    print_message "Certbot process timed out."
+    return 1
+  fi
+}
+
+
+#######################################
+# Build and run docker services with conditional certbot handling
 # Globals:
-#   service_to_standard_config_map
+#   None
 # Arguments:
-#   1
-#   2
-#   3
-#   4
-#   5
-#   6
 #######################################
 build_and_run_docker() {
-  local build_certbot_image="${1}"
-  local docker_compose_file="${2}"
-  local project_logs_dir="${3}"
-  local project_root_dir="${4}"
-  local release_branch="${5}"
-  local disable_docker_build_caching="${6}"
+  local docker_compose_file="${1}"
+  local project_logs_dir="${2}"
+  local project_root_dir="${3}"
+  local release_branch="${4}"
+  local disable_docker_build_caching="${5}"
 
   # Change to project root directory
   cd "${project_root_dir}" || exit 1
@@ -41,7 +76,23 @@ build_and_run_docker() {
   handle_certs
 
   print_message "Building and running docker services for ${release_branch} from $(pwd)"
-  docker compose build --no-cache && docker compose up -d --force-recreate --renew-anon-volumes
+
+  # Now build and run the rest of the services
+  if [[ ${disable_docker_build_caching} == "true" ]]; then
+    docker compose build --no-cache
+  else
+    docker compose build
+  fi
+
+  docker compose up -d --force-recreate --renew-anon-volumes
+
+  if wait_for_certbot_completion; then
+    print_message "Certbot has completed. Restarting other services."
+    restart_services
+  else
+    print_message "An error occurred with Certbot. Please check logs."
+    exit 1
+  fi
 
   # Dump logs
   dump_logs "${docker_compose_file}" "${project_logs_dir}"
@@ -84,7 +135,7 @@ remove_conflicting_containers() {
     local container_name
     docker ps -a --format '{{.Names}}' | grep -E "${service}.*" | while read -r container_name; do
       echo "Removing container: ${container_name}"
-      docker rm -f "${container_name}" &>/dev/null
+      docker rm -f "${container_name}" &> /dev/null
     done
   done
 }
@@ -103,6 +154,9 @@ restart_services() {
   # Restart services dynamically based on unique service names
   local service
   for service in "${!service_to_standard_config_map[@]}"; do
+    if [[ ${service} == "certbot" ]]; then
+      continue
+    fi
     docker compose restart "${service}" || {
       echo "Failed to restart service: ${service}"
       return 1

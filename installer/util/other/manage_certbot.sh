@@ -119,36 +119,7 @@ wait_for_certbot_completion() {
   fi
 }
 
-#######################################
-# description
-# Arguments:
-#  None
-# Returns:
-#   0 ...
-#   1 ...
-#######################################
-check_certbot_success() {
-  local certbot_logs
-  certbot_logs=$(docker compose logs certbot)
-  print_multiple_messages "Certbot logs: ${certbot_logs}"
 
-  # Check for specific messages indicating certificate renewal success or failure
-  if [[ ${certbot_logs} == *'Certificate not yet due for renewal'* ]]; then
-    print_multiple_messages "Certificate is not yet due for renewal."
-    return 0
-  elif [[ ${certbot_logs} == *'Renewing an existing certificate'* ]]; then
-    print_multiple_messages "Certificate renewal successful."
-    restart_services
-    return 0
-  elif [[ ${certbot_logs} == *'Successfully received certificate.'* ]]; then
-    print_multiple_messages "Certificate creation successful."
-    restart_services
-    return 0
-  else
-    print_multiple_messages "Certbot process failed."
-    return 1
-  fi
-}
 
 #######################################
 # description
@@ -217,91 +188,4 @@ rebuild_and_rerun_certbot() {
     print_multiple_messages "Failed to rebuild or run Certbot service."
     return 1
   fi
-}
-
-#######################################
-# description
-# Globals:
-#   dry_run_flag
-#   email_flag
-#   force_renew_flag
-#   hsts_flag
-#   internal_webroot_dir
-#   must_ocsp_staple_flag
-#   no_eff_email_flag
-#   non_interactive_flag
-#   ocsp_stapling_flag
-#   overwrite_self_signed_certs_flag
-#   productions_certs_flag
-#   rsa_key_size_flag
-#   strict_file_permissions_flag
-#   terms_of_service_flag
-#   uir_flag
-# Arguments:
-#  None
-#######################################
-generate_certonly_command() {
-  local services=("${@:1}")
-  # TODO - Extract domains from services and generate certbot command
-  echo "certonly \
-  --webroot \
-  --webroot-path=${internal_webroot_dir} \
-  ${email_flag} \
-  ${terms_of_service_flag} \
-  ${no_eff_email_flag} \
-  ${non_interactive_flag} \
-  ${rsa_key_size_flag} \
-  ${force_renew_flag} \
-  ${hsts_flag} \
-  ${must_ocsp_staple_flag} \
-  ${uir_flag} \
-  ${ocsp_stapling_flag} \
-  ${strict_file_permissions_flag} \
-  ${productions_certs_flag} \
-  ${dry_run_flag} \
-  ${overwrite_self_signed_certs_flag} \
-  --domains ${services[*]}"
-}
-
-#######################################
-# description
-# Arguments:
-#  None
-#######################################
-setup_certbot() {
-  local letsencrypt_vol_map=$1
-  local letsencrypt_logs_vol_map=$2
-  local certs_dh_vol_map=$3
-  local shared_volume_name=$4
-  local shared_webroot_mapping=$5
-  local services=("${@:6}")
-
-  # Define variables for certbot service definition
-  local certbot_name="certbot"
-  local certbot_context="./certbot"
-  local certbot_dockerfile="./certbot/Dockerfile"
-  local certbot_networks="qrgen"
-  local certbot_depends_on="frontend"
-  local certbot_service_definition=""
-
-  local certbot_volumes
-  certbot_volumes=$(join_array_with_commas "volumes" \
-    "${letsencrypt_vol_map}" \
-    "${letsencrypt_logs_vol_map}" \
-    "${certs_dh_vol_map}" \
-    "${shared_webroot_mapping}")
-
-  local certbot_command
-  certbot_command=$(generate_certonly_command "${services[@]}")
-
-  certbot_service_definition=$(create_service_definition \
-    --name "${certbot_name}" \
-    --build-context "${certbot_context}" \
-    --dockerfile "${certbot_dockerfile}" \
-    --command "${certbot_command}" \
-    --volumes "${certbot_volumes}" \
-    --networks "${certbot_networks}" \
-    --depends-on "${certbot_depends_on}")
-
-  echo "${certbot_service_definition}"
 }
