@@ -151,7 +151,7 @@ configure_acme_location_block() {
     echo_indented 8 "location ^~ /.well-known/acme-challenge/ {"
     echo_indented 12 "allow all;"
     echo_indented 12 "root /usr/share/nginx/html;"
-    echo_indented 12 "try_files $uri =404;"
+    echo_indented 12 'try_files $uri =404;'
     echo_indented 8 "}"
   fi
 
