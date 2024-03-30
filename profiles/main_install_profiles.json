@@ -13,7 +13,7 @@
         "/qr/"
       ],
       "volumes": {
-        "./nginx/logs": "/usr/share/nginx/logs",
+        "./backend/logs": "/root/.npm/_logs",
         "./certs": "/etc/letsencrypt"
       }
     },

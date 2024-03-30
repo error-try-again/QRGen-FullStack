@@ -2,25 +2,12 @@
 
 set -euo pipefail
 
-#######################################
-# description
-# Arguments:
-#   1
-#######################################
 configure_server_name() {
   local domain="${1}"
+
   echo_indented 8 "server_name ${domain};"
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#   2
-#   3
-#   4
-#   5
-#######################################
 configure_https() {
   local nginx_ssl_port="${1:-443}"
   local dns_resolver="${2:-1.1.1.1}"
@@ -37,12 +24,7 @@ configure_https() {
   fi
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#   2
-#######################################
+
 configure_ssl_mode() {
   local use_tls_12="${1:-false}"
   local use_tls_13="${2:-true}"
@@ -56,11 +38,6 @@ configure_ssl_mode() {
   fi
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#######################################
 get_gzip() {
   local use_gzip_flag="${1:-false}"
 
@@ -76,14 +53,6 @@ get_gzip() {
   fi
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#   2
-#   3
-#   4
-#######################################
 configure_ssl_settings() {
   local diffie_hellman_parameters_file="${1:-}"
   local use_letsencrypt="${2:-false}"
@@ -109,23 +78,14 @@ configure_ssl_settings() {
   fi
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#######################################
 configure_certs() {
   local domain="${1}"
+
   echo_indented 8 "ssl_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;"
   echo_indented 8 "ssl_certificate_key /etc/letsencrypt/live/${domain}/privkey.pem;"
   echo_indented 8 "ssl_trusted_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;"
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#######################################
 configure_security_headers() {
   local use_hsts="${1}"
 
@@ -139,11 +99,6 @@ configure_security_headers() {
   fi
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#######################################
 configure_acme_location_block() {
   local use_letsencrypt="${1}"
 
@@ -157,12 +112,6 @@ configure_acme_location_block() {
 
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#   2
-#######################################
 configure_local_redirect() {
   local use_letsencrypt="${1}"
   local domain="${2}"
@@ -180,11 +129,6 @@ configure_local_redirect() {
   fi
 }
 
-#######################################
-# description
-# Arguments:
-#  None
-#######################################
 generate_listen_directives() {
   local ports=("$@") # Expand passed ports into an array
 
@@ -201,18 +145,6 @@ generate_listen_directives() {
   done
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#   2
-#   3
-#   4
-#   5
-#   6
-#   7
-#   8
-#######################################
 configure_additional_ssl_settings() {
   local dns_resolver="${1:-}"
   local nginx_ssl_port="${2:-443}"
@@ -222,6 +154,7 @@ configure_additional_ssl_settings() {
   local use_self_signed_certs="${6:-false}"
   local use_tls_12_flag="${7:-false}"
   local use_tls_13_flag="${8:-true}"
+  local domain="${9}"
 
   if [[ ${use_letsencrypt:-false} == "true" ]] || [[ ${use_self_signed_certs:-false} == "true"   ]]; then
     configure_https "${nginx_ssl_port:-443}" "${dns_resolver:-1.1.1.1}" "${timeout:-5}" "${use_letsencrypt:-false}" "${use_self_signed_certs:-false}"
@@ -231,11 +164,6 @@ configure_additional_ssl_settings() {
   fi
 }
 
-#######################################
-# description
-# Arguments:
-#  None
-#######################################
 generate_default_location_block() {
   # Location block for static content
   echo_indented 8 "location / {"
@@ -249,11 +177,6 @@ generate_default_location_block() {
   echo_indented 8 "}"
 }
 
-#######################################
-# description
-# Arguments:
-#  None
-#######################################
 generate_default_file_location() {
   echo_indented 8 "location /robots.txt {"
   echo_indented 12 "root /usr/share/nginx/html;"
@@ -264,18 +187,9 @@ generate_default_file_location() {
   echo_indented 8 "}"
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#   2
-#   3
-#   4
-#   5
-#   6
-#######################################
+
 write_endpoints() {
-  local domain="${1}"
+  local service_name="${1}"
   local backend_port="${2}"
   local backend_scheme="${3}"
   local release_branch="${4}"
@@ -284,7 +198,7 @@ write_endpoints() {
 
   if [[ ${release_branch} == "full-release" && ${service_name} != "nginx" ]]; then
      echo_indented 8 "location ${location:-/} {"
-     echo_indented 12 "proxy_pass ${backend_scheme}://${domain}:${backend_port};"
+     echo_indented 12 "proxy_pass ${backend_scheme}://${service_name}:${backend_port};"
      echo_indented 12 'proxy_set_header Host $host;'
      echo_indented 12 'proxy_set_header X-Real-IP $remote_addr;'
      echo_indented 12 'proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;'
@@ -292,24 +206,6 @@ write_endpoints() {
   fi
 }
 
-#######################################
-# description
-# Arguments:
-#   1
-#   10
-#   11
-#   12
-#   13
-#   14
-#   2
-#   3
-#   4
-#   5
-#   6
-#   7
-#   8
-#   9
-#######################################
 generate_nginx_configuration() {
   local backend_scheme="${1}"
   local diffie_hellman_parameters_file="${2}"
@@ -334,8 +230,6 @@ generate_nginx_configuration() {
   backup_existing_file "${nginx_configuration_file}"
 
   {
-    local unique_endpoint="/qr/"
-    local has_unique_endpoint=false
 
     echo "worker_processes auto;"
     echo "events { worker_connections 1024; }"
@@ -354,11 +248,6 @@ generate_nginx_configuration() {
 
       local service_config="${service_to_standard_config_map[$service_name]}"
       local domains nginx_ssl_port ports backend_port host_port container_port
-
-      # Check if the current configuration has the unique endpoint
-      if [[ ${service_config} == *"$unique_endpoint"* ]]; then
-        has_unique_endpoint=true
-      fi
 
       # Extract service-specific configurations with the exception of globals flags, e.g. backend_scheme
       domains=$(echo "$service_config" | jq -r 'if .domains then .domains[] else empty end')
@@ -381,22 +270,34 @@ generate_nginx_configuration() {
 
       local domain
       for domain in ${domains}; do
-        if [[ $has_unique_endpoint == true ]]; then
+
           # Server block configuration
           echo_indented 4 "server {"
           configure_server_name "${domain}"
           generate_listen_directives "${ports[@]}"
+
           # Generate static blocks
-          configure_additional_ssl_settings "${dns_resolver}" "${nginx_ssl_port}" "${timeout}" "${use_hsts}" "${use_letsencrypt}" "${use_self_signed_certs}" "${use_tls_12_flag}" "${use_tls_13_flag}"
+          configure_additional_ssl_settings "${dns_resolver}" \
+          "${nginx_ssl_port}" \
+          "${timeout}" \
+          "${use_hsts}" \
+          "${use_letsencrypt}" \
+          "${use_self_signed_certs}" \
+          "${use_tls_12_flag}" \
+          "${use_tls_13_flag}" \
+          "${domain}"
+
           generate_default_location_block
           generate_default_file_location
+
           # Dynamic endpoint (/qr/) proxy configuration
+          local unique_endpoint="/qr/"
           write_endpoints "${service_name}" "${backend_port}" "${backend_scheme}" "${release_branch}" "${unique_endpoint}" "${service_name}"
           echo_indented 4 "}"
+
           # Configure ACME challenge for Let's Encrypt, if applicable
           configure_local_redirect "${use_letsencrypt}" "${domain}"
-        fi
-        has_unique_endpoint=false
+
       done
     done
 
