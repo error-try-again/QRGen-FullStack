@@ -88,7 +88,7 @@
           ]
         },
         "certbot": {
-          "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --dry-run --overwrite-cert-dirs --domains qr-gen.net"
+          "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --overwrite-cert-dirs --domains qr-gen.net"
         }
       },
       "networks": {
