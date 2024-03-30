@@ -29,7 +29,7 @@
       "volumes": {
         "./nginx/logs": "/usr/share/nginx/logs",
         "./certs/live/qr-gen.net": "/etc/letsencrypt/live/qr-gen.net",
-        "./nginx/html/.well-known": "/usr/share/nginx/html/.well-known",
+        "./nginx/html/.well-known/acme-challenge": "/usr/share/nginx/html/.well-known/acme-challenge",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
       },
       "networks": [
@@ -54,7 +54,7 @@
         "./certbot/logs": "/var/log/letsencrypt",
         "./certs": "/etc/letsencrypt/live/",
         "./certs/live/dhparam": "/etc/ssl/certs/dhparam",
-        "./nginx/html/.well-known": "/usr/share/nginx/html/.well-known"
+        "./nginx/html/.well-known/acme-challenge": "/usr/share/nginx/html/.well-known/acme-challenge"
       },
       "networks": [
         "qrgen"
