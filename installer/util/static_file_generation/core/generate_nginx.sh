@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+#######################################
+# description
+# Arguments:
+#   1
+#   2
+#######################################
 echo_indented() {
   local level=$1
   local message=$2
@@ -98,20 +104,20 @@ configure_ssl_settings() {
   local use_self_signed_certs="${4:-false}"
 
   if [[ ${use_letsencrypt:-false} == "true" ]] || [[ ${use_self_signed_certs:-false} == "true"  ]]; then
-    echo_indented 4 "ssl_prefer_server_ciphers on;"
-    echo_indented 4 "ssl_ciphers 'ECDH+AESGCM:ECDH+AES256:!DH+3DES:!ADH:!AECDH:!MD5:!ECDHE-RSA-AES256-SHA384:!ECDHE-RSA-AES256-SHA:!ECDHE-RSA-AES128-SHA256:!ECDHE-RSA-AES128-SHA:!RC2:!RC4:!DES:!EXPORT:!NULL:!SHA1';"
-    echo_indented 4 "ssl_buffer_size 8k;"
-    echo_indented 4 "ssl_ecdh_curve secp384r1;"
-    echo_indented 4 "ssl_session_cache shared:SSL:10m;"
-    echo_indented 4 "ssl_session_timeout 10m;"
+    echo_indented 8 "ssl_prefer_server_ciphers on;"
+    echo_indented 8 "ssl_ciphers 'ECDH+AESGCM:ECDH+AES256:!DH+3DES:!ADH:!AECDH:!MD5:!ECDHE-RSA-AES256-SHA384:!ECDHE-RSA-AES256-SHA:!ECDHE-RSA-AES128-SHA256:!ECDHE-RSA-AES128-SHA:!RC2:!RC4:!DES:!EXPORT:!NULL:!SHA1';"
+    echo_indented 8 "ssl_buffer_size 8k;"
+    echo_indented 8 "ssl_ecdh_curve secp384r1;"
+    echo_indented 8 "ssl_session_cache shared:SSL:10m;"
+    echo_indented 8 "ssl_session_timeout 10m;"
 
     if [[ -n ${diffie_hellman_parameters_file:-}   ]]; then
-      echo_indented 4 "ssl_dhparam ${diffie_hellman_parameters_file};"
+      echo_indented 8 "ssl_dhparam ${diffie_hellman_parameters_file};"
     fi
 
     if [[ ${use_ocsp_stapling:-false} == "true"   ]]; then
-      echo_indented 4 "ssl_stapling on;"
-      echo_indented 4 "ssl_stapling_verify on;"
+      echo_indented 8 "ssl_stapling on;"
+      echo_indented 8 "ssl_stapling_verify on;"
     fi
   fi
 }
@@ -140,7 +146,7 @@ configure_security_headers() {
   echo_indented 8 "add_header X-Content-Type-Options nosniff always;"
   echo_indented 8 "add_header X-XSS-Protection '1; mode=block' always;"
   echo_indented 8 "add_header Referrer-Policy 'strict-origin-when-cross-origin' always;"
-   echo_indented 8 "add_header Content-Security-Policy \"default-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org; media-src 'none'; frame-src 'none'; font-src 'self'; connect-src 'self';\";"
+  echo_indented 8 "add_header Content-Security-Policy \"default-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org; media-src 'none'; frame-src 'none'; font-src 'self'; connect-src 'self';\";"
   if [[ ${use_hsts} == "true"   ]]; then
     echo_indented 8 "add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains' always;"
   fi
@@ -222,14 +228,15 @@ generate_listen_directives() {
 #######################################
 configure_additional_ssl_settings() {
   local dns_resolver="${1:-}"
-  local nginx_ssl_port="${2:-443}"
-  local timeout="${3:-5}"
-  local use_hsts="${4:-false}"
-  local use_letsencrypt="${5:-false}"
-  local use_self_signed_certs="${6:-false}"
-  local use_tls_12_flag="${7:-false}"
-  local use_tls_13_flag="${8:-true}"
-  local domain="${9}"
+  local timeout="${2:-5}"
+  local use_hsts="${3:-false}"
+  local use_letsencrypt="${4:-false}"
+  local use_self_signed_certs="${5:-false}"
+  local use_tls_12_flag="${6:-false}"
+  local use_tls_13_flag="${7:-true}"
+  local domain="${8}"
+
+  local nginx_ssl_port="443"
 
   if [[ ${use_letsencrypt:-false} == "true" ]] || [[ ${use_self_signed_certs:-false} == "true"   ]]; then
     configure_https "${nginx_ssl_port:-443}" "${dns_resolver:-1.1.1.1}" "${timeout:-5}" "${use_letsencrypt:-false}" "${use_self_signed_certs:-false}"
@@ -284,7 +291,7 @@ generate_default_file_location() {
 #######################################
 write_endpoints() {
   local service_name="${1}"
-  local backend_port="${2}"
+  local port="${2}"
   local backend_scheme="${3}"
   local release_branch="${4}"
   local location="${5}"
@@ -292,12 +299,115 @@ write_endpoints() {
 
   if [[ ${release_branch} == "full-release" && ${service_name} != "nginx" ]]; then
      echo_indented 8 "location ${location:-/} {"
-     echo_indented 12 "proxy_pass ${backend_scheme}://${service_name}:${backend_port};"
+     echo_indented 12 "proxy_pass ${backend_scheme}://${service_name}:${port};"
      echo_indented 12 'proxy_set_header Host $host;'
      echo_indented 12 'proxy_set_header X-Real-IP $remote_addr;'
      echo_indented 12 'proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;'
      echo_indented 8 "}"
   fi
+}
+
+#######################################
+# description
+# Arguments:
+#  None
+#######################################
+write_nginx_workers() {
+    echo "worker_processes auto;"
+    echo "events { worker_connections 1024; }"
+    echo ""
+}
+
+#######################################
+# description
+# Arguments:
+#   1
+#######################################
+write_include_directive() {
+  local include_file="${1}"
+
+  echo_indented 4 "include ${include_file};"
+}
+
+#######################################
+# description
+# Arguments:
+#   1
+#######################################
+write_default_type() {
+   local default_type="${1}"
+   echo_indented 4 "default_type ${default_type};"
+}
+
+#######################################
+# description
+# Arguments:
+#  None
+#######################################
+write_nginx_server_opening_configuration() {
+  echo_indented 4 "server {"
+}
+
+#######################################
+# description
+# Arguments:
+#  None
+#######################################
+write_nginx_server_close_configuration() {
+  echo_indented 4 "}"
+}
+
+#######################################
+# description
+# Arguments:
+#  None
+#######################################
+write_nginx_http_opening_configuration() {
+  echo_indented 0 "http {"
+}
+
+#######################################
+# description
+# Arguments:
+#  None
+#######################################
+write_nginx_http_closing_configuration() {
+  echo_indented 0 "}"
+}
+
+#######################################
+# description
+# Arguments:
+#   1
+#######################################
+prepare_nginx_configuration_file() {
+  local nginx_configuration_file="${1}"
+
+  if [[ ! -f ${nginx_configuration_file} ]]; then
+    echo "Creating NGINX configuration file at ${nginx_configuration_file}"
+    mkdir -p "$(dirname "${nginx_configuration_file}")"
+    touch "${nginx_configuration_file}"
+  fi
+}
+
+#######################################
+# description
+# Globals:
+#   use_gzip_flag
+# Arguments:
+#   1
+#######################################
+initialize_http_block() {
+  local nginx_configuration_file="${1}"
+
+  # Initialize HTTP block
+  {
+    write_nginx_workers
+    write_nginx_http_opening_configuration
+    write_include_directive "/etc/nginx/mime.types"
+    write_default_type "application/octet-stream"
+    get_gzip "${use_gzip_flag:-false}"
+  } > "${nginx_configuration_file}"
 }
 
 #######################################
@@ -333,90 +443,92 @@ generate_nginx_configuration() {
   local use_tls_12_flag="${12}"
   local use_tls_13_flag="${13}"
 
-  if [[ ! -f ${nginx_configuration_file:-} ]]; then
-    echo "Creating NGINX configuration file at ${nginx_configuration_file}"
-    mkdir -p "$(dirname "${nginx_configuration_file}")"
-    touch "${nginx_configuration_file}"
-  fi
-
+  prepare_nginx_configuration_file "${nginx_configuration_file}"
   backup_existing_file "${nginx_configuration_file}"
 
-  {
-    local unique_endpoint="/qr/"
-    local has_unique_endpoint=false
+  initialize_http_block "${nginx_configuration_file}"
 
-    echo "worker_processes auto;"
-    echo "events { worker_connections 1024; }"
-    echo ""
-    echo "http {"
+  declare -A domain_to_services_map
 
-    echo_indented 4 "include /etc/nginx/mime.types;"
-    echo_indented 4 "default_type application/octet-stream;"
+  # Extract service configurations from associative array
+  local service_config
+  for service_config in "${service_to_standard_config_map[@]}"; do
+    local domains=$(echo "${service_config}" | jq -r '.domains[]')
+    local name=$(echo "${service_config}" | jq -r '.name')
 
-    get_gzip "${use_gzip_flag:-false}"
-    configure_ssl_settings "${diffie_hellman_parameters_file:-}" "${use_letsencrypt:-false}" "${use_ocsp_stapling:-false}" "${use_self_signed_certs:-false}"
-
-
-    local service_name
-    for service_name in "${!service_to_standard_config_map[@]}"; do
-
-      local service_config="${service_to_standard_config_map[$service_name]}"
-      local domains nginx_ssl_port ports backend_port host_port container_port
-
-      # Check if the current configuration has the unique endpoint
-      if [[ ${service_config} == *"$unique_endpoint"* ]]; then
-        has_unique_endpoint=true
-      fi
-
-      # Extract service-specific configurations with the exception of globals flags, e.g. backend_scheme
-      domains=$(echo "$service_config" | jq -r 'if .domains then .domains[] else empty end')
-
-      # Retrieve the SSL port for the service
-      nginx_ssl_port=$(echo "${service_config}" | jq -r '.ports[] | select(test("443")) | split(":")[0]')
-
-      # Retrieve the ports for the service
-      mapfile -t ports < <(echo "${service_config}" | jq -r '.ports[]')
-
-      # Skip inserting server block if no ports are found for the service
-      if [[ ${#ports[@]} -eq 0 ]]; then
-        continue
-      fi
-
-      # Extract the backend port, host port, and container port from the service configuration
-      backend_port=$(echo "${ports[0]}" | cut -d ":" -f2)
-
-      local domain
-      for domain in ${domains}; do
-        if [[ $has_unique_endpoint == true ]]; then
-          # Server block configuration
-          echo_indented 4 "server {"
-          configure_server_name "${domain}"
-          generate_listen_directives "${ports[@]}"
-
-           configure_additional_ssl_settings "${dns_resolver}" \
-          "${nginx_ssl_port}" \
-          "${timeout}" \
-          "${use_hsts}" \
-          "${use_letsencrypt}" \
-          "${use_self_signed_certs}" \
-          "${use_tls_12_flag}" \
-          "${use_tls_13_flag}" \
-          "${domain}"
-
-          generate_default_location_block
-          generate_default_file_location
-          # Dynamic endpoint (/qr/) proxy configuration
-          write_endpoints "${service_name}" "${backend_port}" "${backend_scheme}" "${release_branch}" "${unique_endpoint}" "${service_name}"
-          echo_indented 4 "}"
-          # Configure ACME challenge for Let's Encrypt, if applicable
-          configure_local_redirect "${use_letsencrypt}" "${domain}"
-        fi
-        has_unique_endpoint=false
-      done
+    for domain in $domains; do
+      domain_to_services_map["$domain"]+="$name "
     done
+  done
 
-    echo "}"
-  } > "${nginx_configuration_file}"
+  # Process each domain
+  for domain in "${!domain_to_services_map[@]}"; do
+    local service_names=(${domain_to_services_map[${domain}]})
 
-  echo "NGINX configuration written to ${nginx_configuration_file}"
+    {
+      write_nginx_server_opening_configuration
+
+      configure_server_name \
+        "${domain}"
+
+      # Global settings (assumed to be the same for services sharing a domain)
+      configure_additional_ssl_settings \
+        "${dns_resolver}" \
+        "${timeout}" \
+        "${use_hsts}" \
+        "${use_letsencrypt}" \
+        "${use_self_signed_certs}" \
+        "${use_tls_12_flag}" \
+        "${use_tls_13_flag}" \
+        "${domain}"
+
+      configure_ssl_settings \
+        "${diffie_hellman_parameters_file}" \
+        "${use_letsencrypt}" \
+        "${use_ocsp_stapling}" \
+        "${use_self_signed_certs}"
+
+      generate_default_location_block
+      generate_default_file_location
+
+      # Process unique locations for services within the same domain
+      local locations_seen=()
+      local service_name
+      for service_name in "${service_names[@]}"; do
+
+        local service_config="${service_to_standard_config_map[${service_name}]}"
+        local locations=$(echo "${service_config}" | jq -r '.locations[] // empty')
+
+        local port ports
+        # Retrieve the ports for the service (internal, external)
+        mapfile -t ports < <(echo "${service_config}" | jq -r '.ports[]')
+
+        # Extract the external port for the service
+        port=$(echo "${ports[0]}" | cut -d ":" -f1)
+        local location
+        for location in ${locations}; do
+          if [[ ! " ${locations_seen[*]} " =~ " ${location} " ]]; then
+            locations_seen+=("${location}")
+
+            write_endpoints \
+              "${service_name}" \
+              "${port}" \
+              "${backend_scheme}" \
+              "${release_branch}" \
+              "${location}" \
+              "${service_name}"
+          fi
+        done
+      done
+
+      configure_acme_location_block "${use_letsencrypt}"
+      write_nginx_server_close_configuration
+    } >> "${nginx_configuration_file}"
+  done
+
+  {
+    write_nginx_http_closing_configuration
+  } >> "${nginx_configuration_file}"
+
+  echo "NGINX configuration successfully written to ${nginx_configuration_file}"
 }

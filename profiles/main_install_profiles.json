@@ -10,12 +10,28 @@
       "networks": ["qrgen"],
       "restart": "on-failure",
       "locations": [
-        "/qr/"
+        "/qr"
       ],
       "volumes": {
         "./backend/logs": "/root/.npm/_logs",
         "./certs": "/etc/letsencrypt"
       }
+    },
+    "prometheus": {
+      "name": "prometheus",
+      "image": "prom/prometheus",
+      "container_name": "prometheus",
+      "command": "--web.external-url=http://localhost/prometheus",
+      "ports": [
+        "9090:9090"
+      ],
+      "networks": [
+        "qrgen"
+      ],
+      "restart": "on-failure",
+      "locations": [
+        "/prometheus"
+      ]
     },
     "nginx": {
       "name": "nginx",
@@ -325,13 +341,12 @@
             "443:443"
           ],
           "domains": [
-            "localhost"
+            "localtest"
           ],
           "depends_on": [
             "express_service"
           ],
           "volumes": {
-
             "./nginx/logs": "/usr/share/nginx/logs",
             "./certs/live/localhost": "/etc/letsencrypt/live/localhost",
             "./certs/live/dhparam": "/etc/ssl/certs/dhparam"
@@ -362,7 +377,8 @@
     "http": {
       "services": [
         "nginx",
-        "express_service"
+        "express_service",
+        "prometheus"
       ],
       "overrides": {
         "express_service": {

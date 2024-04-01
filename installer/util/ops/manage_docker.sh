@@ -26,11 +26,11 @@ wait_for_certbot_completion() {
 
   while ((attempt_count++ < max_attempts)); do
     certbot_container_id=$(docker compose ps -q certbot)
-    if [[ -n $certbot_container_id ]]; then
-      certbot_status=$(docker inspect -f '{{.State.Status}}' "$certbot_container_id")
+    if [[ -n ${certbot_container_id} ]]; then
+      certbot_status=$(docker inspect -f '{{.State.Status}}' "${certbot_container_id}")
       print_message "Attempt ${attempt_count}: Certbot container status - ${certbot_status}"
 
-      case $certbot_status in
+      case ${certbot_status} in
         "exited")
           return 0 ;;
         "running")
@@ -43,7 +43,7 @@ wait_for_certbot_completion() {
       print_message "Certbot container is not running."
       break
     fi
-    sleep $sleep_duration
+    sleep ${sleep_duration}
   done
 
   if ((attempt_count > max_attempts)); then

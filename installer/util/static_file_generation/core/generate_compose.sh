@@ -22,13 +22,14 @@ append_service_to_compose() {
     local service_config_json="${1}"
     local compose_file="${2}"
 
-    # Generates service configuration from JSON
+    # Generates service configuration from JSON with conditional build or image specification
     jq -r --argjson defaultPorts '[]' --argjson defaultVolumes '{}' --argjson defaultNetworks '[]' '
         "  \(.name):",
-        "    build:",
-        "      context: \(.context // empty)",
-        "      dockerfile: \(.dockerfile // empty)",
-        "    image: \(.image // empty)",
+        (if .context and .dockerfile then
+            "    build:\n      context: \(.context)\n      dockerfile: \(.dockerfile)"
+        else
+            "    image: \(.image // empty)"
+        end),
         "    container_name: \(.container_name // empty)",
         (if (.ports // $defaultPorts) | length > 0 then "    ports:" else empty end),
         (.ports // $defaultPorts | .[] | "      - \"\(.)\""),
@@ -64,7 +65,6 @@ append_global_configurations() {
   # Check and append global volumes if not empty
   if [ "$(jq -r 'keys | length' <<< "${volumes_json}")" -gt 0 ]; then
     echo "volumes:" >> "${compose_file}"
-    #        jq -r '. | to_entries[] | "  \(.key):\n    driver: \(.value.driver)\n    driver_opts: \(.value.driver_opts)"' <<< "$volumes_json" >> "$compose_file"
     jq -r '. | to_entries[] | "  \(.key):" + (if .value.driver then "\n    driver: \(.value.driver)" else empty end)' <<< "${volumes_json}" >> "${compose_file}"
   fi
 }

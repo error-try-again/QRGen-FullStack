@@ -149,7 +149,6 @@ setup() {
 
   # Pools the services and builds the images using docker compose
   build_and_run_docker \
-  "${build_certbot_image}" \
   "${docker_compose_file}" \
   "${project_logs_dir}" \
   "${project_root_dir}" \
