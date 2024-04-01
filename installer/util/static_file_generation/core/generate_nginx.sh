@@ -164,7 +164,7 @@ configure_acme_location_block() {
     echo_indented 8 "location ^~ /.well-known/acme-challenge/ {"
     echo_indented 12 "allow all;"
     echo_indented 12 "root /usr/share/nginx/html;"
-    echo_indented 12 'try_files $uri =404;'
+    echo_indented 12 "try_files \$uri =404;"
     echo_indented 8 "}"
   fi
 
@@ -187,7 +187,7 @@ configure_local_redirect() {
     echo_indented 8 "server_name ${domain};"
     configure_acme_location_block "${use_letsencrypt}"
     echo_indented 8 "location / {"
-    echo_indented 12 'return 301 https://$host$request_uri;'
+    echo_indented 12 "return 301 https://\$host\$request_uri;"
     echo_indented 8 "}"
     echo_indented 4 "}"
   fi
@@ -256,7 +256,7 @@ generate_default_location_block() {
   echo_indented 8 "location / {"
   echo_indented 12 "root /usr/share/nginx/html;"
   echo_indented 12 "index index.html index.htm;"
-  echo_indented 12 'try_files $uri $uri/ /index.html;'
+  echo_indented 12 "try_files \$uri \$uri/ /index.html;"
   echo_indented 12 "expires 1y;"
   echo_indented 12 "add_header Cache-Control public;"
   echo_indented 12 "access_log /usr/share/nginx/logs/access.log;"
@@ -300,9 +300,9 @@ write_endpoints() {
   if [[ ${release_branch} == "full-release" && ${service_name} != "nginx" ]]; then
      echo_indented 8 "location ${location:-/} {"
      echo_indented 12 "proxy_pass ${backend_scheme}://${service_name}:${port};"
-     echo_indented 12 'proxy_set_header Host $host;'
-     echo_indented 12 'proxy_set_header X-Real-IP $remote_addr;'
-     echo_indented 12 'proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;'
+     echo_indented 12 "proxy_set_header Host \$host;"
+     echo_indented 12 "proxy_set_header X-Real-IP \$remote_addr;"
+     echo_indented 12 "proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;"
      echo_indented 8 "}"
   fi
 }
@@ -443,14 +443,17 @@ generate_nginx_configuration() {
   local use_tls_12_flag="${12}"
   local use_tls_13_flag="${13}"
 
+  # Initialize and backup the NGINX config file
   prepare_nginx_configuration_file "${nginx_configuration_file}"
   backup_existing_file "${nginx_configuration_file}"
 
+  # Start writing out the HTTP block of the NGINX configuration
   initialize_http_block "${nginx_configuration_file}"
 
+  # Prepare an associative array to map domains to their services
   declare -A domain_to_services_map
 
-  # Extract service configurations from associative array
+  # Loop through service configurations to populate domain to service map
   local service_config
   for service_config in "${service_to_standard_config_map[@]}"; do
     local domains=$(echo "${service_config}" | jq -r '.domains[]')
@@ -461,17 +464,18 @@ generate_nginx_configuration() {
     done
   done
 
-  # Process each domain
+  # Configure server blocks for each domain
   for domain in "${!domain_to_services_map[@]}"; do
     local service_names=(${domain_to_services_map[${domain}]})
 
     {
       write_nginx_server_opening_configuration
 
+      # Configure server name and SSL settings
       configure_server_name \
         "${domain}"
 
-      # Global settings (assumed to be the same for services sharing a domain)
+      # Configure server-specific SSL settings and security headers
       configure_additional_ssl_settings \
         "${dns_resolver}" \
         "${timeout}" \
@@ -482,16 +486,18 @@ generate_nginx_configuration() {
         "${use_tls_13_flag}" \
         "${domain}"
 
+      # Configure SSL certificate paths and OCSP stapling
       configure_ssl_settings \
         "${diffie_hellman_parameters_file}" \
         "${use_letsencrypt}" \
         "${use_ocsp_stapling}" \
         "${use_self_signed_certs}"
 
+      # Generate default and file-specific location blocks
       generate_default_location_block
       generate_default_file_location
 
-      # Process unique locations for services within the same domain
+      # Handle unique service locations within the same domain
       local locations_seen=()
       local service_name
       for service_name in "${service_names[@]}"; do
@@ -500,16 +506,18 @@ generate_nginx_configuration() {
         local locations=$(echo "${service_config}" | jq -r '.locations[] // empty')
 
         local port ports
-        # Retrieve the ports for the service (internal, external)
+        # Extract port mappings for the service
         mapfile -t ports < <(echo "${service_config}" | jq -r '.ports[]')
 
         # Extract the external port for the service
         port=$(echo "${ports[0]}" | cut -d ":" -f1)
+
         local location
         for location in ${locations}; do
           if [[ ! " ${locations_seen[*]} " =~ " ${location} " ]]; then
             locations_seen+=("${location}")
 
+            # Write endpoint configuration for each service location
             write_endpoints \
               "${service_name}" \
               "${port}" \
@@ -521,11 +529,16 @@ generate_nginx_configuration() {
         done
       done
 
+      # Configure ACME challenge location for LetsEncrypt
       configure_acme_location_block "${use_letsencrypt}"
+
+      # Close the HTTP block of the NGINX configuration
       write_nginx_server_close_configuration
+
     } >> "${nginx_configuration_file}"
   done
 
+  # Finalize the HTTP block of the configuration
   {
     write_nginx_http_closing_configuration
   } >> "${nginx_configuration_file}"
