@@ -3,7 +3,7 @@
 set -euo pipefail
 
 #######################################
-# description
+# Echoes a message with a specified level of indentation
 # Arguments:
 #   1
 #   2
@@ -164,7 +164,7 @@ configure_acme_location_block() {
     echo_indented 8 "location ^~ /.well-known/acme-challenge/ {"
     echo_indented 12 "allow all;"
     echo_indented 12 "root /usr/share/nginx/html;"
-    echo_indented 12 "try_files \$uri =404;"
+    echo_indented 12 'try_files $uri =404;'
     echo_indented 8 "}"
   fi
 
@@ -187,7 +187,7 @@ configure_local_redirect() {
     echo_indented 8 "server_name ${domain};"
     configure_acme_location_block "${use_letsencrypt}"
     echo_indented 8 "location / {"
-    echo_indented 12 "return 301 https://\$host\$request_uri;"
+    echo_indented 12 'return 301 https://$host$request_uri;'
     echo_indented 8 "}"
     echo_indented 4 "}"
   fi
@@ -256,7 +256,7 @@ generate_default_location_block() {
   echo_indented 8 "location / {"
   echo_indented 12 "root /usr/share/nginx/html;"
   echo_indented 12 "index index.html index.htm;"
-  echo_indented 12 "try_files \$uri \$uri/ /index.html;"
+  echo_indented 12 'try_files $uri $uri/ /index.html;'
   echo_indented 12 "expires 1y;"
   echo_indented 12 "add_header Cache-Control public;"
   echo_indented 12 "access_log /usr/share/nginx/logs/access.log;"
@@ -300,9 +300,9 @@ write_endpoints() {
   if [[ ${release_branch} == "full-release" && ${service_name} != "nginx" ]]; then
      echo_indented 8 "location ${location:-/} {"
      echo_indented 12 "proxy_pass ${backend_scheme}://${service_name}:${port};"
-     echo_indented 12 "proxy_set_header Host \$host;"
-     echo_indented 12 "proxy_set_header X-Real-IP \$remote_addr;"
-     echo_indented 12 "proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;"
+     echo_indented 12 'proxy_set_header Host $host;'
+     echo_indented 12 'proxy_set_header X-Real-IP $remote_addr;'
+     echo_indented 12 'proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;'
      echo_indented 8 "}"
   fi
 }
@@ -528,14 +528,19 @@ generate_nginx_configuration() {
           fi
         done
       done
-
-      # Configure ACME challenge location for LetsEncrypt
-      configure_acme_location_block "${use_letsencrypt}"
-
       # Close the HTTP block of the NGINX configuration
       write_nginx_server_close_configuration
 
+    {
+      configure_local_redirect \
+        "${use_letsencrypt}" \
+        "${domain}"
     } >> "${nginx_configuration_file}"
+
+    } >> "${nginx_configuration_file}"
+
+
+
   done
 
   # Finalize the HTTP block of the configuration

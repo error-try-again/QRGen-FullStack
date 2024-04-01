@@ -6,6 +6,9 @@
       "container_name": "express_service",
       "context": ".",
       "dockerfile": "./backend/Dockerfile",
+      "domains": [
+        "localhost"
+      ],
       "ports": ["3001:3001"],
       "networks": ["qrgen"],
       "restart": "on-failure",
@@ -21,7 +24,10 @@
       "name": "prometheus",
       "image": "prom/prometheus",
       "container_name": "prometheus",
-      "command": "--web.external-url=http://localhost/prometheus",
+      "command": "--config.file=/etc/prometheus/prometheus.yml --web.external-url=http://localhost/prometheus",
+      "domains": [
+        "localhost"
+      ],
       "ports": [
         "9090:9090"
       ],
@@ -39,6 +45,9 @@
       "container_name": "nginx",
       "context": ".",
       "dockerfile": "./frontend/Dockerfile",
+      "domains": [
+        "localhost"
+      ],
       "ports": [
         "80:80",
         "443:443"
@@ -341,7 +350,7 @@
             "443:443"
           ],
           "domains": [
-            "localtest"
+            "localhost"
           ],
           "depends_on": [
             "express_service"
@@ -384,17 +393,11 @@
         "express_service": {
           "ports": [
             "3001:3001"
-          ],
-          "domains": [
-            "localhost"
           ]
         },
         "nginx": {
           "ports": [
             "80:80"
-          ],
-          "domains": [
-            "localhost"
           ],
           "depends_on": [
             "express_service"
