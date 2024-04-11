@@ -3,12 +3,22 @@
 set -euo pipefail
 
 #######################################
+# Take the variable value and the variable name and validate that the variable is not empty
+# Arguments:
+#   $1 - The variable value
+#   $2 - The variable name
+#######################################
+validate_argument_exists() {
+  if [[ -z ${1} ]]; then
+    print_message "${2} is not initialized"
+    exit 1
+  fi
+}
+
+#######################################
 # description
 # Globals:
-#   HOME
-#   certbot_base_image
 #   certbot_dockerfile
-#   certbot_repo
 # Arguments:
 #  None
 #######################################
@@ -17,7 +27,6 @@ generate_certbot_dockerfile() {
 
   local base_image="python:3.10-alpine3.16 as certbot"
   local entrypoint='[ "certbot" ]'
-  local expose="80 443"
   local volumes="/etc/letsencrypt /var/lib/letsencrypt"
   local workdir="/opt/certbot"
   local cargo_net_git_fetch_with_cli="true"
@@ -25,12 +34,11 @@ generate_certbot_dockerfile() {
 
   backup_existing_file "${certbot_dockerfile}"
 
-cat << EOF > "${certbot_dockerfile}"
+  cat << EOF > "${certbot_dockerfile}"
 FROM ${base_image}
 
 WORKDIR ${workdir}
 VOLUME ${volumes}
-EXPOSE ${expose}
 ENTRYPOINT ${entrypoint}
 
 RUN apk update && apk add --no-cache wget unzip
@@ -76,28 +84,15 @@ EOF
 }
 
 #######################################
-# Take the variable value and the variable name and validate that the variable is not empty
-# Arguments:
-#   $1 - The variable value
-#   $2 - The variable name
-#######################################
-validate_argument_exists() {
-  if [[ -z ${1} ]]; then
-    print_message "${2} is not initialized"
-    exit 1
-  fi
-}
-
-#######################################
 # description
 # Globals:
 #   arg_name
 #   backend_dockerfile
 #   backend_submodule_url
+#   domain
 #   google_maps_api_key
 #   node_version
 #   origin
-#   port
 #   release_branch
 #   use_ssl_flag
 # Arguments:
@@ -112,15 +107,14 @@ validate_argument_exists() {
 #######################################
 generate_backend_dockerfile() {
   declare -A args=(
-      [backend_dockerfile]="${1}"
-      [backend_submodule_url]="${2}"
-      [node_version]="${3}"
-      [release_branch]="${4}"
-      [port]="${5}"
-      [use_ssl_flag]="${6}"
-      [google_maps_api_key]="${7}"
-      [origin]="${8}"
-      [domain]="${9}"
+       [backend_dockerfile]="${1}"
+       [backend_submodule_url]="${2}"
+       [node_version]="${3}"
+       [release_branch]="${4}"
+       [use_ssl_flag]="${5}"
+       [google_maps_api_key]="${6}"
+       [origin]="${7}"
+       [domain]="${8}"
   )
 
   for arg_name in "${!args[@]}"; do
@@ -129,7 +123,6 @@ generate_backend_dockerfile() {
     fi
     validate_argument_exists "${args[$arg_name]}" "$arg_name"
   done
-
 
   # Git origin for the release branch is the release branch itself, not the origin used for CORS requests. Naming is hard
   local git_origin
@@ -160,8 +153,6 @@ ENV USE_SSL=${args[use_ssl_flag]}
 ENV GOOGLE_MAPS_API_KEY=${args[google_maps_api_key]}
 ENV DOMAIN=${args[domain]}
 
-EXPOSE ${args[port]}
-
 CMD ["npx", "ts-node", "/usr/app/backend/src/server.ts"]
 
 EOF
@@ -172,7 +163,6 @@ EOF
 # description
 # Globals:
 #   arg_name
-#   exposed_nginx_port
 #   frontend_dockerfile
 #   frontend_submodule_url
 #   mime_types_path
@@ -184,7 +174,6 @@ EOF
 # Arguments:
 #   1
 #   10
-#   11
 #   2
 #   3
 #   4
@@ -196,16 +185,16 @@ EOF
 #######################################
 generate_frontend_dockerfile() {
   declare -A args=(
-       [frontend_dockerfile]="${1}"
-       [frontend_submodule_url]="${2}"
-       [node_version]="${3}"
-       [release_branch]="${4}"
-       [use_google_api_key]="${5}"
-       [sitemap_path]="${6}"
-       [robots_path]="${7}"
-       [nginx_conf_path]="${8}"
-       [mime_types_path]="${9}"
-       [nginx_version]="${10}"
+        [frontend_dockerfile]="${1}"
+        [frontend_submodule_url]="${2}"
+        [node_version]="${3}"
+        [release_branch]="${4}"
+        [use_google_api_key]="${5}"
+        [sitemap_path]="${6}"
+        [robots_path]="${7}"
+        [nginx_conf_path]="${8}"
+        [mime_types_path]="${9}"
+        [nginx_version]="${10}"
   )
 
   for arg_name in "${!args[@]}"; do
@@ -251,7 +240,6 @@ RUN apk add --no-cache curl
 
 COPY ${args[sitemap_path]} /usr/share/nginx/html/sitemap.xml
 COPY ${args[robots_path]} /usr/share/nginx/html/robots.txt
-
 COPY ${args[nginx_conf_path]} /etc/nginx/nginx.conf
 COPY ${args[mime_types_path]} /etc/nginx/mime.types
 

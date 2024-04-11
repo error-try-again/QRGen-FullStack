@@ -15,6 +15,7 @@ generate_nginx_mime_types() {
     touch "${nginx_mime_types_file}"
   fi
 
+  # Restrict the mime types to the ones that might actually be used by the application
   cat << EOF > "${nginx_mime_types_file}"
 types {
     text/html                                        html htm shtml;
@@ -36,7 +37,6 @@ types {
     font/woff2                                       woff2;
 
     application/zip                                  zip;
-
 }
 EOF
 }

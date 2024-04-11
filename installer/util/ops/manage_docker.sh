@@ -32,12 +32,13 @@ wait_for_certbot_completion() {
 
       case ${certbot_status} in
         "exited")
-          return 0 ;;
-        "running")
-          ;; # continue waiting
+          return 0
+                   ;;
+        "running") ;; # continue waiting
         *)
           print_message "Certbot container is in an unexpected state: ${certbot_status}"
-          return 1 ;;
+          return 1
+                   ;;
       esac
     else
       print_message "Certbot container is not running."
@@ -52,7 +53,6 @@ wait_for_certbot_completion() {
   fi
 }
 
-
 #######################################
 # Build and run docker services with conditional certbot handling
 # Globals:
@@ -61,10 +61,9 @@ wait_for_certbot_completion() {
 #######################################
 build_and_run_docker() {
   local docker_compose_file="${1}"
-  local project_logs_dir="${2}"
-  local project_root_dir="${3}"
-  local release_branch="${4}"
-  local disable_docker_build_caching="${5}"
+  local project_root_dir="${2}"
+  local release_branch="${3}"
+  local disable_docker_build_caching="${4}"
 
   # Change to project root directory
   cd "${project_root_dir}" || exit 1
@@ -86,14 +85,17 @@ build_and_run_docker() {
 
   docker compose up -d --force-recreate --renew-anon-volumes
 
-  if wait_for_certbot_completion; then
-    print_message "Certbot has completed. Restarting other services."
-    restart_services
-  else
-    print_message "An error occurred with Certbot. Please check logs."
-    exit 1
+  # Check if certbot service exists in the docker-compose file
+  if docker compose config --services | grep -q certbot; then
+    # Wait for certbot to complete and restart services
+    if wait_for_certbot_completion; then
+      print_message "Certbot has completed. Restarting other services."
+      restart_services
+    else
+      print_message "An error occurred with Certbot. Please check logs."
+      exit 1
+    fi
   fi
-
 }
 
 #######################################

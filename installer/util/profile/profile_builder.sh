@@ -41,6 +41,24 @@ export_environment_flags() {
 }
 
 #######################################
+# Validate that a file exists
+# Arguments:
+#   1
+#######################################
+validate_file_exists() {
+  local file
+  file="${1}"
+
+  if [[ ! -f ${file}   ]]; then
+    print_multiple_messages "Configuration file ${file} does not exist." "Please create the file and try again."
+    exit 1
+  else
+    print_multiple_messages "Configuration file ${file} exists." "Proceeding with the installation."
+    return 0
+  fi
+}
+
+#######################################
 # Take the JSON file as input and apply the configurations for the selected profile.
 # The configurations are applied by merging the default configurations with the profile overrides.
 # Values are stored in the service_to_standard_config_map, global_networks_json, and global_volumes_json.
@@ -61,6 +79,7 @@ apply_profile() {
 
   declare -gA service_to_standard_config_map
   declare -g global_networks_json global_volumes_json
+
 
   validate_file_exists "${json_file}"
 

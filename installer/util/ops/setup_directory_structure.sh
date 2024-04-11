@@ -3,22 +3,30 @@
 set -euo pipefail
 
 #######################################
-# Create the directory structure for the project. This includes the frontend, backend, certbot, and project logs directories.
+# Create a directory if it does not exist and print a message.
 # Arguments:
 #   1
-#   2
-#   3
-#   4
+#######################################
+create_directory_if_not_exist() {
+  local directory="$1"
+  if [[ ! -d ${directory} ]]; then
+    mkdir -p "${directory}"
+    echo "${directory} created."
+  else
+    echo "${directory} already exists."
+  fi
+}
+
+########################################
+# Create the directory structure for the project using the array of directories
+# Arguments:
+#  None
 #######################################
 setup_directory_structure() {
-  local frontend_dir="${1}"
-  local backend_directory="${2}"
-  local certbot_dir="${3}"
-  local project_logs_dir="${4}"
+  local project_dir_array=("$@")
 
-  print_multiple_messages "Staging project directories..."
   local directory
-  for directory in "${frontend_dir}" "${backend_directory}" "${certbot_dir}" "${project_logs_dir}"; do
+  for directory in "${project_dir_array[@]}"; do
     create_directory_if_not_exist "${directory}"
   done
 }

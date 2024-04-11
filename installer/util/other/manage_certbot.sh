@@ -80,52 +80,6 @@ generate_certbot_renewal_job() {
 # Arguments:
 #  None
 # Returns:
-#   0 ...
-#   1 ...
-#######################################
-wait_for_certbot_completion() {
-  local attempt_count=0
-  local max_attempts=12
-  while ((attempt_count < max_attempts)); do
-
-    local certbot_container_id
-    local certbot_status
-
-    certbot_container_id=$(docker compose ps -q certbot)
-
-    # TODO: Clean up this logic
-    if [[ -n ${certbot_container_id} ]]; then
-
-      certbot_status=$(docker inspect -f '{{.State.Status}}' "${certbot_container_id}")
-      print_multiple_messages "Attempt ${attempt_count}"
-      print_multiple_messages "Certbot container status: ${certbot_status}"
-
-      if [[ ${certbot_status} == "exited" ]]; then
-        return 0
-      elif [[ ${certbot_status} != "running" ]]; then
-        print_multiple_messages "Certbot container is in an unexpected state: ${certbot_status}"
-        return 1
-      fi
-    else
-      print_multiple_messages "Certbot container is not running."
-      break
-    fi
-    sleep 5
-    ((attempt_count++))
-  done
-  if ((attempt_count == max_attempts)); then
-    print_multiple_messages "Certbot process timed out."
-    return 1
-  fi
-}
-
-
-
-#######################################
-# description
-# Arguments:
-#  None
-# Returns:
 #   1 ...
 #######################################
 run_certbot_dry_run() {
@@ -141,51 +95,6 @@ run_certbot_dry_run() {
     handle_staging_flags
   else
     print_multiple_messages "Certbot dry run failed."
-    return 1
-  fi
-}
-
-#######################################
-# description
-# Arguments:
-#  None
-#######################################
-run_certbot_service() {
-  print_multiple_messages "Running Certbot service..."
-  handle_certbot_build_and_caching || {
-    print_multiple_messages "Building Certbot service failed. Exiting."
-    exit 1
-  }
-  run_certbot_dry_run || {
-    print_multiple_messages "Running Certbot dry run failed. Exiting."
-    exit 1
-  }
-  rebuild_and_rerun_certbot || {
-    print_multiple_messages "Rebuilding and rerunning Certbot failed. Exiting."
-    exit 1
-  }
-  wait_for_certbot_completion || {
-    print_multiple_messages "Waiting for Certbot to complete failed. Exiting."
-    exit 1
-  }
-  check_certbot_success || {
-    print_multiple_messages "Checking for Certbot success failed. Exiting."
-    exit 1
-  }
-  print_multiple_messages "Certbot process completed successfully."
-}
-
-#######################################
-# description
-# Arguments:
-#  None
-# Returns:
-#   1 ...
-#######################################
-rebuild_and_rerun_certbot() {
-  print_multiple_messages "Rebuilding and rerunning Certbot without dry-run..."
-  if ! docker compose build certbot || ! docker compose up -d certbot; then
-    print_multiple_messages "Failed to rebuild or run Certbot service."
     return 1
   fi
 }

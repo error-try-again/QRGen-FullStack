@@ -23,6 +23,7 @@ append_service_to_compose() {
     local compose_file="${2}"
 
     # Generates service configuration from JSON with conditional build or image specification
+    # and supports optional user and entrypoint fields.
     jq -r --argjson defaultPorts '[]' --argjson defaultVolumes '{}' --argjson defaultNetworks '[]' '
         "  \(.name):",
         (if .context and .dockerfile then
@@ -35,12 +36,14 @@ append_service_to_compose() {
         (.ports // $defaultPorts | .[] | "      - \"\(.)\""),
         (if (.volumes // $defaultVolumes) | keys | length > 0 then "    volumes:" else empty end),
         (.volumes // $defaultVolumes | to_entries[] | "      - \"\(.key):\(.value)\""),
-        "    networks:",
+        (if (.networks // $defaultNetworks) | length > 0 then "    networks:" else empty end),
         (.networks // $defaultNetworks | .[] | "      - \(.)"),
         (if (.depends_on // empty) | length > 0 then "    depends_on:" else empty end),
         (.depends_on // empty | .[] | "      - \(.)"),
         "    restart: \(.restart // "no")",
-        (if (.command // empty) | length > 0 then "    command: \(.command)" else empty end)
+        (if (.command // empty) | length > 0 then "    command: \(.command)" else empty end),
+        (if .user? then "    user: \(.user)" else empty end),
+        (if .entrypoint? then "    entrypoint: \(.entrypoint)" else empty end)
     ' <<< "${service_config_json}" >> "${compose_file}"
 }
 

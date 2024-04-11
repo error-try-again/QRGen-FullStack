@@ -443,39 +443,39 @@ generate_nginx_configuration() {
   local use_tls_12_flag="${12}"
   local use_tls_13_flag="${13}"
 
-  # Initialize and backup the NGINX config file
+  # Prepare the NGINX configuration file by initializing it and backing up the existing one
   prepare_nginx_configuration_file "${nginx_configuration_file}"
   backup_existing_file "${nginx_configuration_file}"
 
-  # Start writing out the HTTP block of the NGINX configuration
+  # Initialize the HTTP block in the NGINX configuration to set global HTTP settings
   initialize_http_block "${nginx_configuration_file}"
 
-  # Prepare an associative array to map domains to their services
+  # Create an associative array to hold the mapping from domains to their associated services
   declare -A domain_to_services_map
 
-  # Loop through service configurations to populate domain to service map
+  # Populate the domain-to-services map by iterating over service configurations
   local service_config
   for service_config in "${service_to_standard_config_map[@]}"; do
-    local domains=$(echo "${service_config}" | jq -r '.domains[]')
-    local name=$(echo "${service_config}" | jq -r '.name')
+    local domains=$(echo "${service_config}" | jq -r 'if .domains then .domains[] else empty end // empty')
+    local name=$(echo "${service_config}" | jq -r 'if .name then .name else empty end // empty')
 
     for domain in $domains; do
       domain_to_services_map["$domain"]+="$name "
     done
   done
 
-  # Configure server blocks for each domain
+  # Iterate over domains to configure server blocks for SSL, security settings, and service endpoints
   for domain in "${!domain_to_services_map[@]}"; do
     local service_names=(${domain_to_services_map[${domain}]})
 
     {
+      # Start configuring the server block with server name and SSL settings
       write_nginx_server_opening_configuration
 
-      # Configure server name and SSL settings
+      # Apply server-specific SSL settings and security enhancements like HSTS
       configure_server_name \
         "${domain}"
 
-      # Configure server-specific SSL settings and security headers
       configure_additional_ssl_settings \
         "${dns_resolver}" \
         "${timeout}" \
@@ -486,30 +486,28 @@ generate_nginx_configuration() {
         "${use_tls_13_flag}" \
         "${domain}"
 
-      # Configure SSL certificate paths and OCSP stapling
+      # Set SSL certificate paths and configure OCSP stapling if enabled
       configure_ssl_settings \
         "${diffie_hellman_parameters_file}" \
         "${use_letsencrypt}" \
         "${use_ocsp_stapling}" \
         "${use_self_signed_certs}"
 
-      # Generate default and file-specific location blocks
+      # Add location blocks for serving files and handling service-specific paths
       generate_default_location_block
       generate_default_file_location
 
-      # Handle unique service locations within the same domain
+      # Configure location blocks unique to each service within the domain
       local locations_seen=()
       local service_name
       for service_name in "${service_names[@]}"; do
 
         local service_config="${service_to_standard_config_map[${service_name}]}"
-        local locations=$(echo "${service_config}" | jq -r '.locations[] // empty')
+        local locations=$(echo "${service_config}" | jq -r 'if .locations then .locations[] else empty end // empty')
 
+        # Determine service port mappings
         local port ports
-        # Extract port mappings for the service
-        mapfile -t ports < <(echo "${service_config}" | jq -r '.ports[]')
-
-        # Extract the external port for the service
+        mapfile -t ports < <(echo "${service_config}" | jq -r 'if .ports then .ports[] else empty end // empty')
         port=$(echo "${ports[0]}" | cut -d ":" -f1)
 
         local location
@@ -517,7 +515,7 @@ generate_nginx_configuration() {
           if [[ ! " ${locations_seen[*]} " =~ " ${location} " ]]; then
             locations_seen+=("${location}")
 
-            # Write endpoint configuration for each service location
+            # Configure each service endpoint within the server block
             write_endpoints \
               "${service_name}" \
               "${port}" \
@@ -528,22 +526,22 @@ generate_nginx_configuration() {
           fi
         done
       done
-      # Close the HTTP block of the NGINX configuration
+
+      # Finalize the server block configuration
       write_nginx_server_close_configuration
 
+    } >> "${nginx_configuration_file}"
+
+    # Configure redirection to HTTPS if Let's Encrypt is used
     {
       configure_local_redirect \
         "${use_letsencrypt}" \
         "${domain}"
     } >> "${nginx_configuration_file}"
 
-    } >> "${nginx_configuration_file}"
-
-
-
   done
 
-  # Finalize the HTTP block of the configuration
+  # Close the HTTP block to complete the NGINX configuration setup
   {
     write_nginx_http_closing_configuration
   } >> "${nginx_configuration_file}"

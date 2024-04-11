@@ -2,6 +2,62 @@
 
 set -euo pipefail
 
+#######################################
+# description
+# Globals:
+#   PS3
+# Arguments:
+#  None
+#######################################
+prompt_user() {
+
+  local welcome_message="QRGen - QR Code Generation Service"
+  local thank_you_message="Task completed!"
+  local select_prompt='Please enter your selection: '
+  local setup_options=("Run Setup" "Uninstall" "Dump logs"
+    "Update Project" "Stop Project Docker Containers"
+    "Purge Current Builds - Dangerous" "Quit")
+  local invalid_option_message="Invalid option selected."
+  local please_select_option_message="Please select an option from the menu."
+
+  while true; do
+    print_multiple_messages "${welcome_message}" "${please_select_option_message}"
+    local user_selection
+    PS3=${select_prompt}
+    select user_selection in "${setup_options[@]}"; do
+      if [[ -n ${user_selection} ]]; then
+        if prompt_user_selection_switch "${user_selection}"; then
+          print_multiple_messages "${thank_you_message}"
+        fi
+      else
+        print_multiple_messages "${invalid_option_message}" "${please_select_option_message}"
+      fi
+      # Exit the select loop and return to the outer loop, re-displaying the menu
+      break
+    done
+  done
+}
+
+#######################################
+# description
+# Globals:
+#   project_logs_dir
+# Arguments:
+#   1
+#######################################
+prompt_user_selection_switch() {
+  case $1 in
+    "Run Setup") setup ;;
+    "Uninstall") uninstall ;;
+    "Dump logs") dump_logs "${docker_compose_file}" "${project_logs_dir}" ;;
+    "Update Project") update_project ;;
+    "Stop Project Docker Containers") stop_containers ;;
+    "Purge Current Builds - Dangerous") purge ;;
+    "Quit") quit ;;
+    *) print_multiple_messages "Invalid selection: $1" ;;
+  esac
+}
+
 # TODO: Migrate away from eval
 # Take a list of arguments and parse them into flags and values using getopts and eval
 dispatch_command() {
@@ -10,14 +66,14 @@ dispatch_command() {
 
   # Associative array to map the command flag to the corresponding to execute.
   local -A command_function_map=(
-                       ["${setup}"]=setup
-                       ["${uninstall}"]=uninstall
-                       ["${dump_logs}"]=dump_logs
-                       ["${update_project}"]=update_project
-                       ["${stop_containers}"]=stop_containers
-                       ["${purge}"]=purge
-                       ["${quit}"]=quit
-                       ["${help}"]=display_help
+                         ["${setup}"]=setup
+                         ["${uninstall}"]=uninstall
+                         ["${dump_logs}"]=dump_logs
+                         ["${update_project}"]=update_project
+                         ["${stop_containers}"]=stop_containers
+                         ["${purge}"]=purge
+                         ["${quit}"]=quit
+                         ["${help}"]=display_help
   )
 
   local command_executed=false

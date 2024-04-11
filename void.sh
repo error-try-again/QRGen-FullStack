@@ -28,29 +28,20 @@ source_configurations() {
 #  None
 #######################################
 source_project_files() {
-  source installer/util/helpers/report_timestamp.sh
-  source installer/util/helpers/create_directory_and_log.sh
   source installer/util/ops/setup_directory_structure.sh
   source installer/util/helpers/print_message.sh
-  source installer/util/helpers/print_multiple_messages.sh
   source installer/util/ops/initialize_and_dispatch_command.sh
   source installer/util/helpers/backup_existing_file.sh
-  source installer/util/helpers/backup_and_replace_file.sh
-  source installer/util/helpers/insert_into_bashrc.sh
   source installer/util/ops/update_project.sh
   source installer/util/profile/profile_builder.sh
   source installer/util/static_file_generation/generate_robots.sh
   source installer/util/static_file_generation/generate_sitemap.sh
   source installer/util/static_file_generation/core/generate_nginx.sh
   source installer/util/ops/setup.sh
-  source installer/util/other/flag_management.sh
-  source installer/util/helpers/manage_port_availability.sh
   source installer/util/other/manage_ssl.sh
   source installer/util/ops/manage_docker.sh
   source installer/util/other/manage_certbot.sh
   source installer/util/static_file_generation/core/generate_compose.sh
-  source installer/util/helpers/validate_file_exists.sh
-  source installer/util/helpers/check_command_exists.sh
   source installer/util/ops/initialize_rootless_docker.sh
   source installer/util/ops/dump_logs.sh
   source installer/util/ops/uninstall.sh
@@ -59,12 +50,9 @@ source_project_files() {
 
   source installer/util/static_file_generation/core/generate_dockerfiles.sh
   source installer/util/static_file_generation/generate_frontend_dotenv.sh
+  source installer/util/static_file_generation/generate_prometheus_yml.sh
 
-  source installer/util/helpers/handle_auto_install.sh
-  source installer/util/helpers/profile_selection_applicators.sh
   source installer/util/static_file_generation/generate_nginx_mime_types.sh
-
-  source installer/prompts/prompts.sh
 }
 
 #######################################

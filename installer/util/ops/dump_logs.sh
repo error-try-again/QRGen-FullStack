@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+#######################################
+# description
+# Arguments:
+#   1
+#   2
+#######################################
 dump_logs() {
   local docker_compose_file="${1}"
   local output_dir="${2}"

@@ -9,8 +9,12 @@
       "domains": [
         "localhost"
       ],
-      "ports": ["3001:3001"],
-      "networks": ["qrgen"],
+      "ports": [
+        "3001:3001"
+      ],
+      "networks": [
+        "qrgen"
+      ],
       "restart": "on-failure",
       "locations": [
         "/qr"
@@ -20,11 +24,21 @@
         "./certs": "/etc/letsencrypt"
       }
     },
+    "prometheus_init": {
+      "name": "prometheus_init",
+      "image": "prom/prometheus:v2.51.1",
+      "container_name": "prometheus_init",
+      "user": "root",
+      "entrypoint": "/bin/sh -c 'chown -R 65534:65534 /prometheus/data'",
+      "volumes": {
+      "./prometheus/data": "/prometheus/data"
+      }
+    },
     "prometheus": {
       "name": "prometheus",
-      "image": "prom/prometheus",
+      "image": "prom/prometheus:v2.51.1",
       "container_name": "prometheus",
-      "command": "--config.file=/etc/prometheus/prometheus.yml --web.external-url=http://localhost/prometheus",
+      "command": "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus/data --web.console.libraries=/etc/prometheus/console_libraries --web.console.templates=/etc/prometheus/consoles",
       "domains": [
         "localhost"
       ],
@@ -37,6 +51,34 @@
       "restart": "on-failure",
       "locations": [
         "/prometheus"
+      ],
+      "volumes": {
+        "./prometheus/data": "/prometheus/data",
+        "./prometheus/config": "/etc/prometheus",
+        "./prometheus/console_libraries": "/etc/prometheus/console_libraries",
+        "./prometheus/consoles": "/etc/prometheus/consoles",
+        "./prometheus/logs": "/var/log/prometheus"
+      },
+      "depends_on": [
+        "prometheus_init"
+      ]
+    },
+    "grafana": {
+      "name": "grafana",
+      "image": "grafana/grafana",
+      "container_name": "grafana",
+      "domains": [
+        "localhost"
+      ],
+      "ports": [
+        "3000:3000"
+      ],
+      "networks": [
+        "qrgen"
+      ],
+      "restart": "on-failure",
+      "locations": [
+        "/grafana"
       ]
     },
     "nginx": {
@@ -338,9 +380,6 @@
           "ports": [
             "3001:3001"
           ],
-          "domains": [
-            "localhost"
-          ],
           "volumes": {
             "./certs/live/localhost": "/etc/ssl/certs/"
           }
@@ -348,9 +387,6 @@
         "nginx": {
           "ports": [
             "443:443"
-          ],
-          "domains": [
-            "localhost"
           ],
           "depends_on": [
             "express_service"
@@ -387,7 +423,9 @@
       "services": [
         "nginx",
         "express_service",
-        "prometheus"
+        "prometheus_init",
+        "prometheus",
+        "grafana"
       ],
       "overrides": {
         "express_service": {

@@ -124,39 +124,3 @@ generate_dh_params() {
     echo "DH parameters already exist at ${dh_param_path}, skipping."
   fi
 }
-
-# Interactive prompt for deciding on certificate regeneration.
-# Globals:
-# auto_install_flag
-prompt_for_certificate_regeneration() {
-  regenerate_ssl_certificates="false"
-  if [[ ${auto_install_flag:-false} != "true" ]]; then
-    read -rp "Do you want to regenerate the self-signed certificates? [y/N]: " response
-    if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-      regenerate_ssl_certificates="true"
-    else
-      echo "Skipping self-signed certificates generation."
-    fi
-  fi
-}
-
-# Prompt for selecting the strength of DH parameters.
-# Globals:
-# diffie_hellman_parameter_bit_size
-prompt_for_dhparam_strength() {
-
-  local diffie_hellman_parameter_choice
-
-  echo "1: Use 2048-bit DH parameters (Faster)"
-  echo "2: Use 4096-bit DH parameters (More secure)"
-  read -rp "Please enter your choice (1/2): " diffie_hellman_parameter_choice
-
-  case ${diffie_hellman_parameter_choice} in
-    1) diffie_hellman_parameter_bit_size=2048 ;;
-    2) diffie_hellman_parameter_bit_size=4096 ;;
-    *)
-      echo "Invalid choice. Please enter 1 or 2."
-      prompt_for_dhparam_strength
-                                 ;;
-  esac
-}

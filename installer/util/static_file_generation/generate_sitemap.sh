@@ -14,7 +14,6 @@ generate_sitemap() {
   local sitemap_path="${2}"
 
   local date regularity priority
-
   date=$(date +%Y-%m-%d)
   regularity="weekly"
   priority="0.8"
