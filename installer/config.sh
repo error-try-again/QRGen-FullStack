@@ -59,6 +59,7 @@ source_global_configurations() {
   # ------------------
   # File Configurations
   # ------------------
+  export docker_compose_file="${project_root_dir}/docker-compose.yml"
   export nginx_configuration_file="${project_root_dir}/nginx/nginx.conf"
   export nginx_mime_types_file="${project_root_dir}/nginx/mime.types"
   export backend_dockerfile="${backend_directory}/Dockerfile"

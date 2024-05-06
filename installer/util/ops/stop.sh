@@ -2,17 +2,16 @@
 
 set -euo pipefail
 
+
 #######################################
 # Stop containers using docker-compose
-# Globals:
-#   docker_compose_file
 # Arguments:
-#  None
+#   1
 #######################################
 stop_containers() {
   verify_docker
-  if check_docker_compose "${docker_compose_file}"; then
+  if [[ -f "${docker_compose_file}" ]]; then
     print_message "Stopping containers using docker-compose..."
-    docker compose -f "${docker_compose_file}" down
+    docker compose -f "${docker_compose_file}" down --remove-orphans
   fi
 }

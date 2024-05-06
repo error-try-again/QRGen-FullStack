@@ -32,6 +32,7 @@ read_service_names() {
   jq -r '.services | keys | .[]' "${install_profile}"
 }
 
+
 #######################################
 # Stop and remove containers, images, volumes, and networks for a given service
 # Arguments:
