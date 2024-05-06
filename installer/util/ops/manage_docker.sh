@@ -134,7 +134,7 @@ remove_conflicting_containers() {
   for service in $(docker compose config --services); do
     local container_name
     docker ps -a --format '{{.Names}}' | grep -E "${service}.*" | while read -r container_name; do
-      echo "Removing container: ${container_name}"
+      print_message "Removing container: ${container_name}"
       docker rm -f "${container_name}" &> /dev/null
     done
   done
@@ -158,7 +158,7 @@ restart_services() {
       continue
     fi
     docker compose restart "${service}" || {
-      echo "Failed to restart service: ${service}"
+      print_message "Failed to restart service: ${service}"
       return 1
     }
   done

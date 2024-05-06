@@ -80,7 +80,7 @@ initialize_rootless_docker() {
   local backup_path="${bashrc_path}.backup"
   # Create a backup of .bashrc
   cp "$bashrc_path" "$backup_path"
-  echo "Backup of .bashrc created at ${backup_path}."
+  print_message "Backup of .bashrc created at ${backup_path}."
 
   insert_into_bashrc "export XDG_RUNTIME_DIR=/run/user/${uid}"
   insert_into_bashrc "export DOCKER_HOST=unix:///run/user/${uid}/docker.sock"

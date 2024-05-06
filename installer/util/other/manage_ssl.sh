@@ -99,9 +99,9 @@ generate_certificate_if_needed() {
       echo "Error generating certificates for ${domain}."
       return 1
     fi
-    echo "Certificates generated at ${fullchain_path} and ${privkey_path}."
+    print_message "Certificates generated at ${fullchain_path} and ${privkey_path}."
   else
-    echo "Certificates already exist at ${fullchain_path} and ${privkey_path}, skipping."
+    print_message "Certificates already exist at ${fullchain_path} and ${privkey_path}, skipping."
   fi
 }
 
@@ -119,8 +119,8 @@ generate_dh_params() {
       echo "Failed to generate DH parameters."
       return 1
     fi
-    echo "DH parameters generated at ${dh_param_path}."
+    print_message "DH parameters generated at ${dh_param_path}."
   else
-    echo "DH parameters already exist at ${dh_param_path}, skipping."
+    print_message "DH parameters already exist at ${dh_param_path}, skipping."
   fi
 }

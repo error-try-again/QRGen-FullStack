@@ -11,9 +11,9 @@ create_directory_if_not_exist() {
   local directory="$1"
   if [[ ! -d ${directory} ]]; then
     mkdir -p "${directory}"
-    echo "${directory} created."
+    print_message "${directory} created."
   else
-    echo "${directory} already exists."
+    print_message "${directory} already exists."
   fi
 }
 
