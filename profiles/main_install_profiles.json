@@ -38,7 +38,8 @@
         "qrgen"
       ],
       "locations": [
-        "/auth0"
+        "/delete_account",
+        "/protected_health"
       ],
       "restart": "no",
       "depends_on": [
@@ -48,7 +49,7 @@
         "./auth0/logs": "/root/.npm/_logs",
         "./certs": "/etc/letsencrypt"
       },
-      "entrypoint": "/bin/sh -c 'if [ -d Auth0-Backend-API ]; then rm -rf Auth0-Backend-API; fi && git clone https://github.com/error-try-again/Auth0-Backend-API.git; cd Auth0-Backend-API && echo 'AUTH0_AUDIENCE=wplingo-admin' >> .env && echo 'AUTH0_MANAGEMENT_AUDIENCE=https://wplingo.au.auth0.com/api/v2/' >> .env && echo 'AUTH0_ISSUER=https://wplingo.au.auth0.com/' >> .env && echo 'AUTH0_GRANT_TYPE=client_credentials' >> .env && echo 'TOKEN_SIGNING_ALG=RS256' >> .env && echo 'AUTH0_CLIENT_ID=LYeeS6OZdIBDJ2utBwQ6tXds0GFK1Vpd' >> .env && echo 'AUTH0_CLIENT_SECRET=Ta2Lie_8sYkx91uTJ9BL6_F6buKlJYTyRZHPk5eTNEvYz87cQpnfGaCyG84AnpWx' >> .env && echo 'AUTH0_DOMAIN=wplingo.au.auth0.com' >> .env && echo 'PORT=8082' >> .env && echo 'USE_SSL=true' >> .env && echo 'DOMAIN=localhost' >> .env && echo 'ORIGIN=https://localhost:8082' >> .env && echo 'AUTH0_ACCESS_TOKEN=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlR6LUsxeEpYZmNyMmFGeHVIOTlITyJ9.eyJpc3MiOiJodHRwczovL3dwbGluZ28uYXUuYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTAxODgzMDk4MDI2MzAxMTI2MTg5IiwiYXVkIjpbIndwbGluZ28tYWRtaW4iLCJodHRwczovL3dwbGluZ28uYXUuYXV0aDAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTcxNDk3MjI4OCwiZXhwIjoxNzE1MDU4Njg4LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIG9mZmxpbmVfYWNjZXNzIiwiYXpwIjoidmV2UHJzMFA3Skg3Y0V4VDBhMWhiN1F3RjdpQ2ZiZVUifQ.StKy3Omo2ILVbqNXmNJ23uZkgzIATtHl4GuNP5S05l5ZC5WX8lGvBcRea10R4psn7j9fjNcD8KNitcFgzHoKQO4DJpDCfMATBmqEz4qBrheC7YZXdAcIe55ku6paG3Ke6YHExxMxXg8kjT5R3vhX_QXJpH-mYL6kyzs-7W4kELtOZAElTXuMj4FNQ7CGMU9VgR7Bu3MXb4gfeWvtDZ52SFUpA_D8cG67H4PI0kFXFD770wiDq7UJvV5L8ToyRVmfN-GpW7EsYElFtlOxAB9XCe3yjR20bcJIKAVT5fENXIKX2Z9wTuaETipVAZZ_ql6R_wx0ZbSi4oYPEVn5PlE9NA' >> .env && rm -rf node_modules && rm -f yarn.lock && rm -f package-lock.json && npm cache clean --force && npm install && npx ts-node src/server.ts'"
+      "entrypoint": "/bin/sh -c 'if [ -d Auth0-Backend-API ]; then rm -rf Auth0-Backend-API; fi && git clone https://github.com/error-try-again/Auth0-Backend-API.git; cd Auth0-Backend-API && echo 'AUTH0_AUDIENCE=' >> .env && echo 'AUTH0_MANAGEMENT_AUDIENCE=https://wplingo.au.auth0.com/api/v2/' >> .env && echo 'AUTH0_ISSUER=https://wplingo.au.auth0.com/' >> .env && echo 'AUTH0_GRANT_TYPE=client_credentials' >> .env && echo 'TOKEN_SIGNING_ALG=RS256' >> .env && echo 'AUTH0_CLIENT_ID=' >> .env && echo 'AUTH0_CLIENT_SECRET=' >> .env && echo 'AUTH0_DOMAIN=wplingo.au.auth0.com' >> .env && echo 'PORT=8082' >> .env && echo 'USE_SSL=true' >> .env && echo 'DOMAIN=localhost' >> .env && echo 'ORIGIN=https://localhost:8082' >> .env && rm -rf node_modules && rm -f yarn.lock && rm -f package-lock.json && npm cache clean --force && npm install && npx ts-node src/server.ts'"
     },
     "prometheus_init": {
       "name": "prometheus_init",

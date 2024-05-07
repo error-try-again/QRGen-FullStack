@@ -497,33 +497,41 @@ generate_nginx_configuration() {
       generate_default_location_block
       generate_default_file_location
 
-      # Configure location blocks unique to each service within the domain
-      local locations_seen=()
       local service_name
       for service_name in "${service_names[@]}"; do
 
         local service_config="${service_to_standard_config_map[${service_name}]}"
+
+        # Determine service locations
         local locations=$(echo "${service_config}" | jq -r 'if .locations then .locations[] else empty end // empty')
 
         # Determine service port mappings
-        local port ports
-        mapfile -t ports < <(echo "${service_config}" | jq -r 'if .ports then .ports[] else empty end // empty')
-        port=$(echo "${ports[0]}" | cut -d ":" -f1)
+        local ports=$(echo "${service_config}" | jq -r 'if .ports then .ports[] else empty end // empty')
 
-        local location
-        for location in ${locations}; do
-          if [[ ! " ${locations_seen[*]} " =~ " ${location} " ]]; then
-            locations_seen+=("${location}")
+        # Declare an array to track seen combinations
+        local seen_combinations=()
 
-            # Configure each service endpoint within the server block
-            write_endpoints \
-              "${service_name}" \
-              "${port}" \
-              "${backend_scheme}" \
-              "${release_branch}" \
-              "${location}" \
-              "${service_name}"
-          fi
+        # Iterate over each port mapping to configure service endpoints for each
+        local p
+        for p in ${ports}; do
+          local port="$(echo "${p}" | cut -d ":" -f1)"
+
+          local location
+          for location in ${locations}; do
+            local combination="${service_name}:${port}:${location}"
+
+            if [[ ! " ${seen_combinations[*]} " =~ " ${combination} " ]]; then
+              seen_combinations+=("${combination}")
+              # Configure each service endpoint within the server block
+              write_endpoints \
+                "${service_name}" \
+                "${port}" \
+                "${backend_scheme}" \
+                "${release_branch}" \
+                "${location}" \
+                "${service_name}"
+            fi
+          done
         done
       done
 
@@ -546,5 +554,5 @@ generate_nginx_configuration() {
     write_nginx_http_closing_configuration
   } >> "${nginx_configuration_file}"
 
-  echo "NGINX configuration successfully written to ${nginx_configuration_file}"
+  print_message "NGINX configuration successfully written to ${nginx_configuration_file}"
 }
