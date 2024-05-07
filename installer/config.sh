@@ -49,7 +49,7 @@ source_global_configurations() {
   # ------------------
   export project_root_dir
   project_root_dir="$(pwd)"
-  local project_logs_dir="${project_root_dir}/logs"
+  export project_logs_dir="${project_root_dir}/logs"
   local backend_directory="${project_root_dir}/backend"
   local frontend_dir="${project_root_dir}/frontend"
   local certbot_dir="${project_root_dir}/certbot"

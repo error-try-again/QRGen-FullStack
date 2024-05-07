@@ -1,9 +1,9 @@
 {
   "services": {
-    "express_service": {
-      "name": "express_service",
+    "qrgen_backend_service": {
+      "name": "qrgen_backend_service",
       "image": "node:latest",
-      "container_name": "express_service",
+      "container_name": "qrgen_backend_service",
       "context": ".",
       "dockerfile": "./backend/Dockerfile",
       "domains": [
@@ -23,6 +23,32 @@
         "./backend/logs": "/root/.npm/_logs",
         "./certs": "/etc/letsencrypt"
       }
+    },
+    "auth0_protected_api": {
+      "name": "auth0_protected_api",
+      "image": "node:20.0.0",
+      "container_name": "auth0_protected_api",
+      "domains": [
+        "localhost"
+      ],
+      "ports": [
+        "8082:8082"
+      ],
+      "networks": [
+        "qrgen"
+      ],
+      "locations": [
+        "/auth0"
+      ],
+      "restart": "no",
+      "depends_on": [
+        "nginx"
+      ],
+      "volumes": {
+        "./auth0/logs": "/root/.npm/_logs",
+        "./certs": "/etc/letsencrypt"
+      },
+      "entrypoint": "/bin/sh -c 'if [ -d Auth0-Backend-API ]; then rm -rf Auth0-Backend-API; fi && git clone https://github.com/error-try-again/Auth0-Backend-API.git; cd Auth0-Backend-API && echo 'AUTH0_AUDIENCE=wplingo-admin' >> .env && echo 'AUTH0_MANAGEMENT_AUDIENCE=https://wplingo.au.auth0.com/api/v2/' >> .env && echo 'AUTH0_ISSUER=https://wplingo.au.auth0.com/' >> .env && echo 'AUTH0_GRANT_TYPE=client_credentials' >> .env && echo 'TOKEN_SIGNING_ALG=RS256' >> .env && echo 'AUTH0_CLIENT_ID=LYeeS6OZdIBDJ2utBwQ6tXds0GFK1Vpd' >> .env && echo 'AUTH0_CLIENT_SECRET=Ta2Lie_8sYkx91uTJ9BL6_F6buKlJYTyRZHPk5eTNEvYz87cQpnfGaCyG84AnpWx' >> .env && echo 'AUTH0_DOMAIN=wplingo.au.auth0.com' >> .env && echo 'PORT=8082' >> .env && echo 'USE_SSL=true' >> .env && echo 'DOMAIN=localhost' >> .env && echo 'ORIGIN=https://localhost:8082' >> .env && echo 'AUTH0_ACCESS_TOKEN=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlR6LUsxeEpYZmNyMmFGeHVIOTlITyJ9.eyJpc3MiOiJodHRwczovL3dwbGluZ28uYXUuYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTAxODgzMDk4MDI2MzAxMTI2MTg5IiwiYXVkIjpbIndwbGluZ28tYWRtaW4iLCJodHRwczovL3dwbGluZ28uYXUuYXV0aDAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTcxNDk3MjI4OCwiZXhwIjoxNzE1MDU4Njg4LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIG9mZmxpbmVfYWNjZXNzIiwiYXpwIjoidmV2UHJzMFA3Skg3Y0V4VDBhMWhiN1F3RjdpQ2ZiZVUifQ.StKy3Omo2ILVbqNXmNJ23uZkgzIATtHl4GuNP5S05l5ZC5WX8lGvBcRea10R4psn7j9fjNcD8KNitcFgzHoKQO4DJpDCfMATBmqEz4qBrheC7YZXdAcIe55ku6paG3Ke6YHExxMxXg8kjT5R3vhX_QXJpH-mYL6kyzs-7W4kELtOZAElTXuMj4FNQ7CGMU9VgR7Bu3MXb4gfeWvtDZ52SFUpA_D8cG67H4PI0kFXFD770wiDq7UJvV5L8ToyRVmfN-GpW7EsYElFtlOxAB9XCe3yjR20bcJIKAVT5fENXIKX2Z9wTuaETipVAZZ_ql6R_wx0ZbSi4oYPEVn5PlE9NA' >> .env && rm -rf node_modules && rm -f yarn.lock && rm -f package-lock.json && npm cache clean --force && npm install && npx ts-node src/server.ts'"
     },
     "prometheus_init": {
       "name": "prometheus_init",
@@ -104,7 +130,7 @@
         "qrgen"
       ],
       "depends_on": [
-        "express_service"
+        "qrgen_backend_service"
       ],
       "restart": "on-failure"
     },
@@ -113,7 +139,7 @@
       "context": ".",
       "dockerfile": "./certbot/Dockerfile",
       "container_name": "certbot",
-      "entrypoint": "/bin/sh",
+      "entrypoint": "certbot",
       "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --overwrite-cert-dirs --domains qr-gen.net",
       "ports": [],
       "volumes": {
@@ -134,6 +160,9 @@
   "networks": {
     "qrgen": {
       "driver": "bridge"
+    },
+    "auth0": {
+      "driver": "bridge"
     }
   },
   "volumes": {
@@ -145,8 +174,9 @@
     "production": {
       "services": [
         "nginx",
-        "express_service",
-        "certbot"
+        "qrgen_backend_service",
+        "certbot",
+        "auth0_protected_api"
       ],
       "overrides": {
         "nginx": {
@@ -154,13 +184,18 @@
             "qr-gen.net"
           ]
         },
-        "express_service": {
+        "qrgen_backend_service": {
+          "domains": [
+            "qr-gen.net"
+          ]
+        },
+        "auth0_protected_api": {
           "domains": [
             "qr-gen.net"
           ]
         },
         "certbot": {
-          "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --overwrite-cert-dirs --domains qr-gen.net"
+          "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --overwrite-cert-dirs --domains qr-gen.net"
         }
       },
       "networks": {
@@ -179,7 +214,7 @@
         "auto_install_flag": true,
         "backend_scheme": "https",
         "build_certbot_image": true,
-        "diffie_hellman_parameter_bit_size": 2048,
+        "diffie_hellman_parameter_bit_size": 4096,
         "disable_docker_build_caching": true,
         "docker_compose_file": "docker-compose.yml",
         "email_flag": "--register-unsafely-without-email",
@@ -192,83 +227,6 @@
         "origin": "void.qr-gen.net",
         "origin_port": "8080",
         "origin_url": "https://void.qr-gen.net",
-        "productions_certs_flag": "--staging",
-        "regenerate_diffie_hellman_parameters": true,
-        "regenerate_ssl_certificates": true,
-        "release_branch": "full-release",
-        "rsa_key_size_flag": "--rsa-key-size 4096",
-        "terms_of_service_flag": "--agree-tos",
-        "use_auto_renew_ssl": true,
-        "use_custom_domain": true,
-        "use_dry_run": true,
-        "use_force_renew": true,
-        "use_google_api_key": true,
-        "use_gzip_flag": true,
-        "use_hsts": true,
-        "use_letsencrypt": true,
-        "use_must_staple": false,
-        "use_ocsp_stapling": true,
-        "use_overwrite_self_signed_certificates": true,
-        "use_production_ssl": true,
-        "use_ssl_flag": true,
-        "use_strict_file_permissions": false,
-        "use_tls_12_flag": false,
-        "use_tls_13_flag": true,
-        "use_uir": true,
-        "domain": "qr-gen.net"
-      }
-    },
-    "production-dry-run": {
-      "services": [
-        "nginx",
-        "express_service",
-        "certbot"
-      ],
-      "overrides": {
-        "nginx": {
-          "domains": [
-            "qr-gen.net"
-          ]
-        },
-        "express_service": {
-          "domains": [
-            "qr-gen.net"
-          ]
-        },
-        "certbot": {
-          "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --force-renewal --hsts --staple-ocsp --uir --staple-ocsp --staging --dry-run --overwrite-cert-dirs --domains qr-gen.net"
-        }
-      },
-      "networks": {
-        "qrgen": {
-          "driver": "bridge"
-        }
-      },
-      "volumes": {
-        "shared": {
-          "driver_opts": {
-            "o": "addr=host.docker.internal,nolock,soft,rw,override_option"
-          }
-        }
-      },
-      "flags": {
-        "auto_install_flag": true,
-        "backend_scheme": "https",
-        "build_certbot_image": true,
-        "diffie_hellman_parameter_bit_size": 2048,
-        "disable_docker_build_caching": true,
-        "docker_compose_file": "docker-compose.yml",
-        "email_flag": "--register-unsafely-without-email",
-        "google_maps_api_key": "",
-        "hsts_flag": "--hsts",
-        "letsencrypt_email": "skip",
-        "non_interactive_flag": "--non-interactive",
-        "no_eff_email_flag": "--no-eff-email",
-        "ocsp_stapling_flag": "--staple-ocsp",
-        "origin": "void.qr-gen.net",
-        "origin_port": "8080",
-        "origin_url": "https://void.qr-gen.net",
-        "productions_certs_flag": "--staging",
         "regenerate_diffie_hellman_parameters": true,
         "regenerate_ssl_certificates": true,
         "release_branch": "full-release",
@@ -297,8 +255,9 @@
     "staging": {
       "services": [
         "nginx",
-        "express_service",
-        "certbot"
+        "qrgen_backend_service",
+        "certbot",
+        "auth0_protected_api"
       ],
       "overrides": {
         "nginx": {
@@ -306,13 +265,18 @@
             "qr-gen.net"
           ]
         },
-        "express_service": {
+        "qrgen_backend_service": {
+          "domains": [
+            "qr-gen.net"
+          ]
+        },
+        "auth0_protected_api": {
           "domains": [
             "qr-gen.net"
           ]
         },
         "certbot": {
-          "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --hsts --staple-ocsp --uir --staple-ocsp --staging --overwrite-cert-dirs --domains qr-gen.net"
+          "command": "certonly --webroot --webroot-path=/usr/share/nginx/html --register-unsafely-without-email --agree-tos --no-eff-email --non-interactive --rsa-key-size 4096 --hsts --staple-ocsp --uir --staging --overwrite-cert-dirs --domains qr-gen.net"
         }
       },
       "networks": {
@@ -331,7 +295,7 @@
         "auto_install_flag": true,
         "backend_scheme": "https",
         "build_certbot_image": true,
-        "diffie_hellman_parameter_bit_size": 2048,
+        "diffie_hellman_parameter_bit_size": 4096,
         "disable_docker_build_caching": true,
         "docker_compose_file": "docker-compose.yml",
         "email_flag": "--register-unsafely-without-email",
@@ -373,23 +337,16 @@
     "self_signed": {
       "services": [
         "nginx",
-        "express_service"
+        "qrgen_backend_service",
+        "auth0_protected_api"
       ],
       "overrides": {
-        "express_service": {
-          "ports": [
-            "3001:3001"
-          ],
-          "volumes": {
-            "./certs/live/localhost": "/etc/ssl/certs/"
-          }
-        },
         "nginx": {
           "ports": [
             "443:443"
           ],
           "depends_on": [
-            "express_service"
+            "qrgen_backend_service"
           ],
           "volumes": {
             "./nginx/logs": "/usr/share/nginx/logs",
@@ -399,6 +356,7 @@
         }
       },
       "flags": {
+        "build_certbot_image": false,
         "auto_install_flag": true,
         "backend_scheme": "https",
         "diffie_hellman_parameter_bit_size": 2048,
@@ -422,15 +380,16 @@
     "http": {
       "services": [
         "nginx",
-        "express_service",
+        "qrgen_backend_service",
         "prometheus_init",
         "prometheus",
-        "grafana"
+        "grafana",
+        "auth0_protected_api"
       ],
       "overrides": {
-        "express_service": {
-          "ports": [
-            "3001:3001"
+        "auth0_protected_api": {
+          "depends_on": [
+            "nginx"
           ]
         },
         "nginx": {
@@ -438,7 +397,7 @@
             "80:80"
           ],
           "depends_on": [
-            "express_service"
+            "qrgen_backend_service"
           ]
         }
       },
